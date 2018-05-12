@@ -6,8 +6,8 @@ const verifyMiddleware = (req, res, next) => {
 
   if(!token){
     return res.status(401).json({
-      success : false,
-      message : 'not logged in'
+      Code : 0,
+      Desc : 'not logged in'
     });
   }
 
@@ -22,7 +22,7 @@ const verifyMiddleware = (req, res, next) => {
 
   const onError = (error) => {
     res.status(403).json({
-      success : false,
+      Code : 0,
       error : error.message
     })
   }

@@ -5,7 +5,8 @@ module.exports = (function (){
       port : '3306',
       user : 'root',
       password : 'rkxdlrkcl',
-      database : 'undefined'
+      database : 'undefined',
+      connectionLimit : 50
     }
   };
 })();
