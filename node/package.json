@@ -11,6 +11,8 @@
   "dependencies": {
     "body-parser": "^1.18.2",
     "express": "^4.16.3",
-    "mysql": "^2.15.0"
+    "jsonwebtoken": "^8.2.1",
+    "mysql": "^2.15.0",
+    "yarn": "^1.6.0"
   }
 }

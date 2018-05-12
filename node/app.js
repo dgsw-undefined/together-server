@@ -1,13 +1,17 @@
-var express = require('express');
-var app = express();
-var bodyParser = require('body-parser');
-var port = process.env.PORT || 8080;
+const express = require('express');
+const app = express();
+const bodyParser = require('body-parser');
+const port = process.env.PORT || 8080;
+//Load Config
+const config = require('./config');
 
 app.use(bodyParser.urlencoded({extended : true}));
 app.use(bodyParser.json());
 
-var routes = require("./routes")(app);
+app.set('jwt-secret',config.secret);
 
-var server = app.listen(port,() => {
+app.use('/',require('./routes'));
+
+let server = app.listen(port,() => {
   console.log("Express server is running on "+port);
 });

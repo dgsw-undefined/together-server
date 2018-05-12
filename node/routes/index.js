@@ -1,12 +1,8 @@
-var mysql_dbc = require('../db/dbcon')();
-var connection = mysql_dbc.init();
-mysql_dbc.test_open(connection);
-var stmt;
+const router = require('express').Router();
+const verifyMiddleware = require('../../middleware/verify');
+const team =  require('./team');
 
-module.exports = (app) => {
-  app.get('/',(req,res) => {
-    res.send('Hello routes!!');
-  });
+router.use('/team', team);
+router.use('/team', verifyMiddleware)
 
-
-}
+module.exports = router
