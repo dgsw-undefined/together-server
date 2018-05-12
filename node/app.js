@@ -13,5 +13,5 @@ app.set('jwt-secret',config.secret);
 app.use('/',require('./routes'));
 
 let server = app.listen(port,() => {
-  console.log("Express server is running on "+port);
+  console.log('Express server is running on '+port);
 });
