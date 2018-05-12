@@ -1,11 +1,10 @@
 const jwt = require('jsonwebtoken')
-
 const verifyMiddleware = (req, res, next) => {
 
   const token = req.headers['authorization']
 
   if(!token){
-    return res.status(401).json({
+    return res.send({
       Code : 0,
       Desc : 'not logged in'
     });
@@ -21,9 +20,9 @@ const verifyMiddleware = (req, res, next) => {
   )
 
   const onError = (error) => {
-    res.status(403).json({
+    res.send({
       Code : 0,
-      error : error.message
+      Desc : err.message
     })
   }
 

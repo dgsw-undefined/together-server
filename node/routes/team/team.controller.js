@@ -1,6 +1,7 @@
 const mysql_dbc = require('../../db/dbcon')();
 const mysql = require('mysql')
 const pool = mysql_dbc.init();
+const protocol = require('../../util/protocolFormat')
 const jwt = require('jsonwebtoken')
 // encoding : Hs256
 mysql_dbc.test_open(pool);
@@ -16,27 +17,18 @@ exports.list = (req, res) => {
   stmt += 'SELECT team_id FROM team_member WHERE user_id = '+user_id+')'
   pool.getConnection((err,connection) => {
     connection.query(stmt, (err, rows) => {
-      if(err){ res.status(500).json({
-        "Code" : 0,
-        "Desc" : err.message,
-        "stmt" : stmt
-      })}
-
-       res.send({
-        "Code" : 1,
-        "Desc" : "success",
-        "Data" : rows
-      });
+      if(err) return protocol.error(res,err)
+      if(rows == 0) return protocol.notFound(res)
+      return protocol.success(res,rows)
       connection.release();
     });
   });
 }
-
 
 /*
   Post /team
 */
 
 exports.create = (req, res) => {
-
+  stmt = 'INSERT INTO team (name,subject,desc,leader_id) values ('
 }
