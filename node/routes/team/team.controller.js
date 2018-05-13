@@ -32,13 +32,36 @@ exports.list = (req, res) => {
   Post /team
 */
 
-//todo Team Create 해야돼!!
 exports.create = (req, res) => {
+
+  //Team테이블에 팀 생성
+  var team_id = null;
   stmt = 'INSERT INTO team (name,subject,desc,leader_id) values (?,?,?,?)'
   params = [req.body.name,req.body.subject,req.body.desc,req.body.leader_id]
   pool.getConnection((err,connection) => {
     connection.query(stmt,params,(err,rows) => {
-      if(err) return protocol.error(err)
+      if(err) return protocol.error(res,err)
     });
+
+    //추가한 Team_id를 찾음
+
+    stmt = 'SELECT team_id FROM team where user_id = ?'
+    params = req.body.leader_id
+    connection.query(stmt,params,(err,rows) => {
+      if(err) return protocol.error(res,err)
+      team_id = rows
+    });
+
+    //찾은 Team_id로 리더를 Team_member테이블에 삽입
+
+    //todo 리더의 inviter_id를 자기 자신으로 할지 null로 둘지
+    stmt = 'INSERT INTO team_member (team_id,user_id,area,inviter_id) values (?,?,?,?)'
+    params = [req.body.team_id,req.body.leader_id,req.body.area,req.body.leader_id]
+    connection.query(stmt,params,(err,rows) => {
+      if(err) return protocol.error(res,err)
+      return protocol.success(res)
+    })
+
+
   });
 }
