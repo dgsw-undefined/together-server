@@ -62,6 +62,6 @@ exports.create = (req, res) => {
       return protocol.success(res)
     })
 
-
+    connection.release();
   });
 }
