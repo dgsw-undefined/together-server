@@ -49,18 +49,17 @@ exports.create = (req, res) => {
     stmt = 'SELECT id FROM team where leader_id = \''+req.body.leader_id+'\''+'GROUP BY id ORDER BY id DESC'
     connection.query(stmt,(err,rows) => {
       if(err) return protocol.error(res,err)
-      req.body.team_id = rows[0].id
+
+      //찾은 Team_id로 리더를 Team_member테이블에 삽입
+
+      stmt = 'INSERT INTO team_member (team_id,user_id,area,inviter_id) values (?,?,?,?)'
+      params = [rows[0].id,req.body.leader_id,req.body.area,req.body.leader_id]
+
+      connection.query(stmt,params,(err,rows) => {
+        if(err) return protocol.error(res,err)
+        return protocol.success(res)
+      })
     });
-
-    //찾은 Team_id로 리더를 Team_member테이블에 삽입
-
-    //todo 리더의 inviter_id를 자기 자신으로 할지 null로 둘지
-    stmt = 'INSERT INTO team_member (team_id,user_id,area,inviter_id) values (?,?,?,?)'
-    params = [req.body.team_id,req.body.leader_id,req.body.area,req.body.leader_id]
-    connection.query(stmt,params,(err,rows) => {
-      if(err) return protocol.error(res,err)
-      return protocol.success(res)
-    })
 
     connection.release();
   });
