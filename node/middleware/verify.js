@@ -27,6 +27,7 @@ const verifyMiddleware = (req, res, next) => {
   }
 
   verify.then((decoded) => {
+    req.decoded = decoded
     next()
   }).catch(onError)
 
