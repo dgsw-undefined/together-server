@@ -16,7 +16,7 @@ var stmt = null;
 
 exports.list = (req, res) => {
   stmt = 'SELECT * FROM team WHERE id IN ('
-  stmt += 'SELECT team_id FROM team_member WHERE user_id = '+req.decoded.id+')'
+  stmt += 'SELECT team_id FROM team_member WHERE user_id = '+mysql.escape(req.decoded.name)+')'
   pool.getConnection((err,connection) => {
     connection.query(stmt, (err, rows) => {
       if(err) return protocol.error(res,err)
@@ -33,11 +33,11 @@ exports.list = (req, res) => {
 
 exports.create = (req, res) => {
 
-  var user_id = req.decoded.id;
+  var user_id = req.decoded.name;
 
   //Team테이블에 팀 생성
   stmt = 'INSERT INTO team (name,subject,descrip,leader_id) values (?,?,?,?)'
-  params = [req.body.name,req.body.subject,req.body.descrip,user_id]
+  params = [mysql.escape(req.body.name),mysql.escape(req.body.subject),mysql.escape(req.body.docs),user_id]
   pool.getConnection((err,connection) => {
     connection.query(stmt,params,(err,rows) => {
       if(err) return protocol.error(res,err)
@@ -45,14 +45,14 @@ exports.create = (req, res) => {
 
     //추가한 Team_id를 찾음
 
-    stmt = 'SELECT id FROM team where leader_id = \''+user_id+'\''+'GROUP BY id ORDER BY id DESC'
+    stmt = 'SELECT id FROM team WHERE leader_id = \''+user_id+'\' GROUP BY id ORDER BY id DESC'
     connection.query(stmt,(err,rows) => {
       if(err) return protocol.error(res,err)
 
       //찾은 Team_id로 리더를 Team_member테이블에 삽입
 
-      stmt = 'INSERT INTO team_member (team_id,user_id,area,inviter_id) values (?,?,?,?)'
-      params = [rows[0].id,req.decoded.id,req.body.area,user_id]
+      stmt = 'INSERT INTO team_member (team_id,user_id,area,inviter_id,is_leader) values (?,?,?,?,?)'
+      params = [rows[0].id,user_id,mysql.escape(req.body.area),user_id,1]
 
       connection.query(stmt,params,(err,rows) => {
         if(err) return protocol.error(res,err)

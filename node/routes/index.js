@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const verifyMiddleware = require('../middleware/verify');
 const team = require('./team');
-const user = require('user');
+const user = require('./user');
 
 router.get('/',(req,res) => {
   res.send("This is Node Page!!!");

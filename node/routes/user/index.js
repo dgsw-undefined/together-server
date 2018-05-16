@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const controller = require('./user.controller')
 
-router.fetch('/able', controller.available)
+// router.patch('/able', controller.available)
 
 module.exports = router
