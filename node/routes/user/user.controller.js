@@ -14,5 +14,10 @@ var stmt = null;
 */
 
 exports.available = (req,res) => {
-
+  stmt = "UPDATE user SET status = ((SELECT status FROM user WHERE id = "+req.decoded.name+")+1)%2 WHERE id = "+req.decoded.name
+  connection.query(stmt,(err,rows) => {
+    if(err) protocol.error(res,err)
+    if(rows == 0) protocol.notFound(res)
+    protocol.success(res)
+  });
 }
