@@ -24,3 +24,27 @@ exports.available = (req,res) => {
     connection.release();
   })
 }
+
+/*
+  truster_list
+*/
+
+exports.truster_list = () => {
+
+}
+
+/*
+  trust
+*/
+
+exports.trust = () => {
+
+}
+
+/*
+  untrust
+*/
+
+exports.untrust = () => {
+
+}
