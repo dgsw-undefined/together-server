@@ -26,6 +26,8 @@ const verifyMiddleware = (req, res, next) => {
     })
   }
 
+//decoded에 name에 user_id 저장됨
+
   verify.then((decoded) => {
     req.decoded = decoded
     next()

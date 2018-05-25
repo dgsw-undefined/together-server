@@ -14,7 +14,7 @@ var stmt = null;
 */
 
 exports.available = (req,res) => {
-  stmt = "UPDATE user SET status = "+req.body.status
+  stmt = "UPDATE user SET status = "+mysql.escape(req.body.status)
   pool.getConnection((err,connection) => {
     connection.query(stmt,(err,rows) => {
       if(err) protocol.error(res,err)
@@ -29,15 +29,23 @@ exports.available = (req,res) => {
   truster_list
 */
 
-exports.truster_list = () => {
-
+exports.truster_list = (req,res) => {
+  stmt = "SELECT * FROM truster WHERE user_id = "+mysql.escape(req.decoded.name)
+  pool.getConnection((err,connection) => {
+    connection.query(stmt,(err,rows) => {
+      if(err) protocol.error(res.err)
+      if(rows == 0) protocol.notFound(res)
+      protocol.success(res,rows)
+    });
+    connection.release();
+  })
 }
 
 /*
   trust
 */
 
-exports.trust = () => {
+exports.trust = (req, res) => {
 
 }
 
@@ -45,6 +53,6 @@ exports.trust = () => {
   untrust
 */
 
-exports.untrust = () => {
+exports.untrust = (req, res) => {
 
 }
