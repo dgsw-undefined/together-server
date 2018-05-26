@@ -26,7 +26,7 @@ const verifyMiddleware = (req, res, next) => {
     })
   }
 
-//decoded에 name에 user_id 저장됨
+//decoded에 idx에 user의 idx값 저장됨
 
   verify.then((decoded) => {
     req.decoded = decoded
