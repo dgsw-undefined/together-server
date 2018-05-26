@@ -14,14 +14,14 @@ var stmt = null;
 */
 
 exports.available = (req,res) => {
-  stmt = "UPDATE user SET status = "+mysql.escape(req.body.status)
+  stmt = 'UPDATE user SET status = '+mysql.escape(req.body.status)
   pool.getConnection((err,connection) => {
     connection.query(stmt,(err,rows) => {
       if(err) protocol.error(res,err)
       if(rows == 0) protocol.notFound(res)
       protocol.success(res)
     });
-    connection.release();
+    connection.release()
   })
 }
 
@@ -30,14 +30,14 @@ exports.available = (req,res) => {
 */
 
 exports.truster_list = (req,res) => {
-  stmt = "SELECT * FROM truster WHERE user_id = "+mysql.escape(req.decoded.name)
+  stmt = 'SELECT * FROM truster WHERE user_id = '+mysql.escape(req.decoded.name)
   pool.getConnection((err,connection) => {
     connection.query(stmt,(err,rows) => {
       if(err) protocol.error(res.err)
       if(rows == 0) protocol.notFound(res)
       protocol.success(res,rows)
     });
-    connection.release();
+    connection.release()
   })
 }
 
@@ -46,7 +46,17 @@ exports.truster_list = (req,res) => {
 */
 
 exports.trust = (req, res) => {
+  stmt = 'INSERT INTO truster (user_id,truster_id) VALUES (?,?)'
+  var params = [req.decoded.name,req.body.trust_id]
 
+  pool.getConnection((err, connection) => {
+    connection.query(stmt,params,(err, rows) => {
+      if(err) protocol.error(res,err)
+      console.log("decoded name : "+req.decoded.name+" req.body.trust_id : "+req.body.trust_id)
+      protocol.success(res)
+    });
+    connection.release()
+  })
 }
 
 /*
@@ -54,5 +64,12 @@ exports.trust = (req, res) => {
 */
 
 exports.untrust = (req, res) => {
-
+  stmt = 'DELETE FROM truster WHERE user_id = ? AND truster_id = ?'
+  params = [mysql.escape(req.decoded.name),mysql.escape(req.body.trust_id)]
+  pool.getConnection((err,connection) => {
+    connection.query(stmt,params,(err,rows) => {
+      if(err) protocol.error(err)
+      protocol.success(res)
+    })
+  })
 }
