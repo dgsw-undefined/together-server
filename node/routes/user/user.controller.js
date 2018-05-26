@@ -46,17 +46,54 @@ exports.truster_list = (req,res) => {
 */
 
 exports.trust = (req, res) => {
-  stmt = 'INSERT INTO truster (user_id,truster_id) VALUES (?,?)'
-  var params = [req.decoded.name,req.body.trust_id]
 
-  pool.getConnection((err, connection) => {
-    connection.query(stmt,params,(err, rows) => {
-      if(err) protocol.error(res,err)
-      console.log("decoded name : "+req.decoded.name+" req.body.trust_id : "+req.body.trust_id)
-      protocol.success(res)
+  const connect = new Promise(
+    pool.getConnection(err, connection) => {
+        if(err) reject(err)
+        resolve(connection)
+    }
+  )
+
+
+  const select = (connection) => {
+    return new Promise((resolve,reject) => {
+      stmt = 'SELECT idx FROM user WHERE id = '+req.decoded.name
+      connection.query(stmt,(err, rows) => {
+        var idx = null
+        if(err || rows == 0) reject(err)
+        if(rows != 0) idx = rows[0].idx
+        resolve(idx,connection)
+      })
     });
+  }
+
+  const insert = (user_id,connection) => {
+    return new Promise((resolve,reject) => {
+      stmt = 'INSERT INTO truster (user_id,truster_id) VALUES (?,?)'
+      var params = [user_id,req.body.trust_id]
+
+      connection.query(stmt,params,(err,rows) => {
+        if(err) reject(err)
+        resolve(connection)
+      })
+    });
+  }
+
+  const release = (connection) => {
     connection.release()
-  })
+    return protocol.success(res)
+  }
+
+  const onError = (err) => {
+    connection.release()
+    protocol.error(res,err)
+  }
+
+  connect
+  .then(select)
+  .then(insert)
+  .then(release)
+  .catch(onError)
 }
 
 /*

@@ -15,7 +15,7 @@ var stmt = null;
 
 exports.list = (req, res) => {
   stmt = 'SELECT * FROM team WHERE id IN ('
-  stmt += 'SELECT team_id FROM team_member WHERE user_id = '+mysql.escape(req.decoded.name)+')'
+  stmt += 'SELECT team_id FROM team_member WHERE idx = '+mysql.escape(req.decoded.idx)+')'
   pool.getConnection((err,connection) => {
     connection.query(stmt, (err, rows) => {
       if(err) return protocol.error(res,err)
@@ -32,7 +32,7 @@ exports.list = (req, res) => {
 
 exports.create = (req, res) => {
 
-  var user_id = req.decoded.name;
+  var user_id = req.decoded.idx;
 
   //Team테이블에 팀 생성
   stmt = 'INSERT INTO team (name,subject,descrip,leader_id) values (?,?,?,?)'
