@@ -34,9 +34,11 @@ exports.create = (req, res) => {
 
   var user_id = req.decoded.idx;
 
+  //todo DB구조 추가 했으니까 그거에 맞는 프로토콜, 코드 수정해야댐!
+
   //Team테이블에 팀 생성
-  stmt = 'INSERT INTO team (name,subject,descrip,leader_id) values (?,?,?,?)'
-  params = [mysql.escape(req.body.name),mysql.escape(req.body.subject),mysql.escape(req.body.docs),user_id]
+  stmt = 'INSERT INTO team (name,subject,descrip,leader_id,member_limit) values (?,?,?,?,?)'
+  params = [mysql.escape(req.body.name),mysql.escape(req.body.subject),mysql.escape(req.body.docs),user_id,mysql.escape(req.body.limit)]
   pool.getConnection((err,connection) => {
     connection.query(stmt,params,(err,rows) => {
       if(err) return protocol.error(res,err)
