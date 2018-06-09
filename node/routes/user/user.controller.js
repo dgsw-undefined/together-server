@@ -46,9 +46,8 @@ exports.truster_list = (req,res) => {
 */
 
 exports.trust = (req, res) => {
-
   stmt = 'INSERT INTO truster (user_id,truster_id) VALUES (?,?)'
-  var params = [mysql.escape(req.decoded.idx),mysql.escape(req.body.trust_id)]
+  var params = [parseInt(req.decoded.iss),mysql.escape(req.body.trust_id)]
 
   pool.getConnection((err,connection) => {
     connection.query(stmt,params,(err,rows) => {
@@ -64,7 +63,7 @@ exports.trust = (req, res) => {
 
 exports.untrust = (req, res) => {
   stmt = 'DELETE FROM truster WHERE user_id = ? AND truster_id = ?'
-  params = [mysql.escape(req.decoded.idx),mysql.escape(req.body.trust_id)]
+  params = [parseInt(req.decoded.iss),mysql.escape(req.body.trust_id)]
   pool.getConnection((err,connection) => {
     connection.query(stmt,params,(err,rows) => {
       if(err) protocol.error(err)

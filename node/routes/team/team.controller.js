@@ -15,7 +15,7 @@ var stmt = null;
 
 exports.list = (req, res) => {
   stmt = 'SELECT * FROM team WHERE id IN ('
-  stmt += 'SELECT team_id FROM team_member WHERE idx = '+mysql.escape(req.decoded.idx)+')'
+  stmt += 'SELECT team_id FROM team_member WHERE user_id = '+parseInt(req.decoded.iss)+')'
   pool.getConnection((err,connection) => {
     connection.query(stmt, (err, rows) => {
       if(err) return protocol.error(res,err)
@@ -32,13 +32,12 @@ exports.list = (req, res) => {
 
 exports.create = (req, res) => {
 
-  var user_id = req.decoded.idx;
-
+  var user_id = req.decoded.iss;
   //todo DB구조 추가 했으니까 그거에 맞는 프로토콜, 코드 수정해야댐!
 
   //Team테이블에 팀 생성
-  stmt = 'INSERT INTO team (name,subject,descrip,leader_id,member_limit) values (?,?,?,?,?)'
-  params = [mysql.escape(req.body.name),mysql.escape(req.body.subject),mysql.escape(req.body.docs),user_id,mysql.escape(req.body.limit)]
+  stmt = 'INSERT INTO team (name,docs,area,subject,leader_id,member_limit) values (?,?,?,?,?,?)'
+  params = [req.body.name,req.body.docs,req.body.area,req.body.subject,user_id,req.body.limit]
   pool.getConnection((err,connection) => {
     connection.query(stmt,params,(err,rows) => {
       if(err) return protocol.error(res,err)
@@ -52,8 +51,8 @@ exports.create = (req, res) => {
 
       //찾은 Team_id로 리더를 Team_member테이블에 삽입
 
-      stmt = 'INSERT INTO team_member (team_id,user_id,area,inviter_id,is_leader) values (?,?,?,?,?)'
-      params = [rows[0].id,user_id,mysql.escape(req.body.area),user_id,1]
+      stmt = 'INSERT INTO team_member (team_id,user_id,field,inviter_id,is_leader) values (?,?,?,?,?)'
+      params = [rows[0].id,user_id,req.body.field,user_id,1]
 
       connection.query(stmt,params,(err,rows) => {
         if(err) return protocol.error(res,err)
