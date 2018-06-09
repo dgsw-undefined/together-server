@@ -1,5 +1,5 @@
 //Protocol Format 연결
-const protocol = require('../../util/protocolFormat')
+const protocol = require('../../util/protocolFormat').trust
 //JWT 모듈 encoding : Hs256
 const jwt = require('jsonwebtoken')
 //Mysql 접속
@@ -30,7 +30,7 @@ exports.available = (req,res) => {
 */
 
 exports.truster_list = (req,res) => {
-  stmt = 'SELECT * FROM truster WHERE user_id = '+mysql.escape(req.decoded.name)
+  stmt = 'SELECT * FROM truster WHERE user_id = '+parseInt(req.decoded.iss)
   pool.getConnection((err,connection) => {
     connection.query(stmt,(err,rows) => {
       if(err) protocol.error(res,err)

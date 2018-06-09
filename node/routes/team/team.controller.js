@@ -1,5 +1,5 @@
 //Protocol Format 연결
-const protocol = require('../../util/protocolFormat')
+const protocol = require('../../util/protocolFormat').team;
 //JWT 모듈 encoding : Hs256
 const jwt = require('jsonwebtoken')
 //Mysql 접속
