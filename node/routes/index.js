@@ -9,7 +9,6 @@ const mysql_dbc = require('../db/dbcon')();
 const pool = mysql_dbc.init();
 mysql_dbc.test_open(pool);
 
-
 router.get('/',(req,res) => {
   res.send("This is Node Page!!!");
 });
@@ -21,3 +20,5 @@ router.use('/team', verifyMiddleware)
 router.use('/team', team);
 
 module.exports = router
+
+//todo team join, kickout, alert list

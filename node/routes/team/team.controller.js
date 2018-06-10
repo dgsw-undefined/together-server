@@ -9,6 +9,9 @@ const pool = mysql_dbc.init();
 //query 명령어
 var stmt = null;
 
+//query 값
+
+var params = null;
 /*
   Get /team
 */
@@ -62,4 +65,52 @@ exports.create = (req, res) => {
 
     connection.release();
   });
-}
+
+  /*
+    Post /team/join
+  */
+
+  //TODO field 어떻게 처리할지 물어봐야댐
+  exports.join = (req,res) => {
+    var user_id = parseInt(req.decoded.iss)
+
+    stmt = "INSERT INTO team_member (team_id,user_id,field,inviter_id) values (?,?,?,?)"
+    params = [req.body.team_id,req.body.user_id,req.body.field,user_id]
+
+    pool,getConnection((err,connection) => {
+      connection.query(stmt,params,(err,rows) => {
+        if(err) protocol.err(res)
+        protocol.success(res)
+      });
+
+      connection.release();
+    });
+  }
+
+  /*
+    Post /team/kickout
+  */
+
+  exports.kickout = (req,res) => {
+    var user_id = parseInt(req.decoded.iss)
+
+    pool.getConnection((err,connection) => {
+
+      stmt = 'SELECT is_leader FROM team_member WHERE team_id = ? AND user_id = ?'
+      params = [req.body.team_id,user_id]
+
+      connection.query(stmt,params,(err,rows) => {
+        if(rows[0].is_leader != 1)
+          protocol.err(res)
+
+        stmt = 'UPDATE team_member SET kickout_date = ? WHERE user = ?'
+        params = ['getdate()',req.body.user_id]
+        connection.query(stmt,params,(err,rows) => {
+          if(err) protocol.err(res)
+          protocol.success(res)
+        })
+      })
+    });
+  }
+
+ }

@@ -32,7 +32,6 @@ const verifyMiddleware = (req, res, next) => {
     req.decoded = decoded
     next()
   }).catch(onError)
-
 }
 
 module.exports = verifyMiddleware

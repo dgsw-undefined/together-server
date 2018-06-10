@@ -3,6 +3,7 @@
 
 var team = {}
 var trust = {}
+var alert = {}
 
 //Team Protocol
 
@@ -64,7 +65,38 @@ trust.notFound = (res) => {
   })
 }
 
+// Alert Protocol
+
+//alert error
+
+alert.error = (res,err) => {
+  return res.send({
+   "Code" : 112,
+   "Desc" : err.message
+ });
+}
+
+//alert Success
+
+alert.success = (res,rows) => {
+  return res.send({
+   "Code" : 111,
+   "Desc" : "success",
+   "Data" : rows
+ });
+}
+
+//alert Not Found
+
+alert.notFound = (res) => {
+  return res.send({
+    "Code" : 113,
+    "Desc" : "Data not Found"
+  })
+}
+
 module.exports={
   team:team,
-  trust:trust
+  trust:trust,
+  alert:alert
 }
