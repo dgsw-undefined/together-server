@@ -60,22 +60,21 @@ exports.create = (req, res) => {
       connection.query(stmt,params,(err,rows) => {
         if(err) return protocol.error(res,err)
         return protocol.success(res)
-      })
+        })
+      });
+      connection.release();
     });
-
-    connection.release();
-  });
-
+  }
   /*
     Post /team/join
   */
 
-  //TODO field 어떻게 처리할지 물어봐야댐
+
   exports.join = (req,res) => {
     var user_id = parseInt(req.decoded.iss)
 
-    stmt = "INSERT INTO team_member (team_id,user_id,field,inviter_id) values (?,?,?,?)"
-    params = [req.body.team_id,req.body.user_id,req.body.field,user_id]
+    stmt = "INSERT INTO team_member (team_id,user_id,inviter_id) values (?,?,?,?)"
+    params = [req.body.team_id,req.body.user_id,user_id]
 
     pool,getConnection((err,connection) => {
       connection.query(stmt,params,(err,rows) => {
@@ -110,7 +109,6 @@ exports.create = (req, res) => {
           protocol.success(res)
         })
       })
-    });
+      connection.release();
+    })
   }
-
- }
