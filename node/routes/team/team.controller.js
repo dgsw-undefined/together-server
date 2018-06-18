@@ -2,6 +2,7 @@
 const protocol = require('../../util/protocolFormat').team;
 //JWT 모듈 encoding : Hs256
 const jwt = require('jsonwebtoken')
+const moment = require('moment')
 //Mysql 접속
 const mysql_dbc = require('../../db/dbcon')();
 const mysql = require('mysql')
@@ -102,9 +103,8 @@ exports.create = (req, res) => {
         if(rows[0].is_leader != 1)
           protocol.err(res)
 
-        stmt = 'UPDATE team_member SET kickout_date = ? WHERE user = ?'
-        params = ['getdate()',req.body.user_id]
-        connection.query(stmt,params,(err,rows) => {
+        stmt = 'UPDATE team_member SET kickout_date = now() WHERE user = '+req.body.user_id
+        connection.query(stmt,(err,rows) => {
           if(err) protocol.err(res)
           protocol.success(res)
         })

@@ -17,7 +17,6 @@ router.get('/',(req,res) => {
 router.use('/team', verifyMiddleware)
 router.use('/team', team)
 
-
 router.use('/user', verifyMiddleware)
 router.use('/user', user)
 

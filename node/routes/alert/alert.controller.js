@@ -14,14 +14,24 @@ var user_id = null
 var sender = null
 var team_id = null
 
-const save_alert = (res,user_id,sender,team_id,receiver,type) => {
-  stmt = 'INSERT INTO alert (user_id,type,sender,receiver,team_id) values (?,?,?,?,?)'
-  params = [user_id,type,sender,receiver,team_id]
+const save_alert = (res,connection,user_id,sender,team_id,receiver,type,kind) => {
+  stmt = 'INSERT INTO alert (user_id,type,sender,receiver,team_id,kind) values (?,?,?,?,?,?)'
+  params = [user_id,type,sender,receiver,team_id,kind]
 
-  pool.getConnection((err,connection) => {
-    connection.query(stmt,params,(err,rows) => {
-      if(err) protocol.err(res)
-      protocol.success(res)
-    })
+  connection.query(stmt,params,(err,rows) => {
+    if(err) protocol.error(res,err)
+    protocol.success(res)
   })
+}
+
+exports.create_team = (req, res) => {
+    stmt = 'SELECT user_id FROM truster WHERE truster_id = '+parseInt(req.decoded.iss)
+    pool.getConnection((err,connection) => {
+      connection.query(stmt,(err,rows) => {
+        if(err) protocol.error(res,err)
+        for(var i in rows){
+          save_alert(res,connection,null,parseInt(req.decoded.iss),req.body.team_id,rows[i].user_id,1,1)
+        }
+      })
+    })
 }

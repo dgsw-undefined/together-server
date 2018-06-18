@@ -1,8 +1,6 @@
 const router = require('express').Router()
 const controller = require('./alert.controller')
 
-router.get('/',(req,res) => {
-  res.send('hi!')
-})
+router.get('/create-team',controller.create_team)
 
 module.exports = router

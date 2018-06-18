@@ -71,7 +71,7 @@ trust.notFound = (res) => {
 
 alert.error = (res,err) => {
   return res.send({
-   "Code" : 112,
+   "Code" : 400,
    "Desc" : err.message
  });
 }
@@ -80,7 +80,7 @@ alert.error = (res,err) => {
 
 alert.success = (res,rows) => {
   return res.send({
-   "Code" : 111,
+   "Code" : 401,
    "Desc" : "success",
    "Data" : rows
  });
@@ -90,7 +90,7 @@ alert.success = (res,rows) => {
 
 alert.notFound = (res) => {
   return res.send({
-    "Code" : 113,
+    "Code" : 402,
     "Desc" : "Data not Found"
   })
 }
