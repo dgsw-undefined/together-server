@@ -24,6 +24,27 @@ const save_alert = (res,connection,user_id,sender,team_id,receiver,type,kind) =>
   })
 }
 
+/*
+
+*/
+
+
+/*
+  나갈 때 팀멤버들에게 전송
+*/
+
+exports.team_member_walkout = (req,res) => {
+  stmt = 'SELECT user_id FROM team_member WHERE team_id = '+req.body.team_id;
+  pool.getConnection((err,connection) => {
+    connection.query(stmt,(err,rows) => {
+      if(err) protocol.error(res,err)
+      for (var i in rows) {
+        save_alert(res,connection,parseInt(req.decoded.iss),null,req.body.team_id,rows[i].user_id,1,5)
+      }
+    })
+  })
+}
+
 exports.create_team = (req, res) => {
     stmt = 'SELECT user_id FROM truster WHERE truster_id = '+parseInt(req.decoded.iss)
     pool.getConnection((err,connection) => {
@@ -33,5 +54,17 @@ exports.create_team = (req, res) => {
           save_alert(res,connection,null,parseInt(req.decoded.iss),req.body.team_id,rows[i].user_id,1,1)
         }
       })
+      connection.release();
     })
+}
+
+/*
+  trust 하는 사람이 trust 할 때 알림 전송
+*/
+
+exports.trust_me = (req,res) => {
+  pool.getConnection((err,connection) => {
+    save_alert(res,connection,null,parseInt(req.decoded.iss),req.body.truster_id,null,1,4);
+    connection.release();
+  })
 }
