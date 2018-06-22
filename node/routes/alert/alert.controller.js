@@ -25,16 +25,22 @@ const save_alert = (res,connection,user_id,sender,team_id,receiver,type,kind) =>
 }
 
 /*
-
+  team에서 유저 추방할때 보냄
 */
 
+exports.team_member_kickout = (req,res) => {
+  pool.getConnection((err,connection) => {
+    save_alert(res,connection,null,parseInt(req.decoded.iss),req.body.kickout_id,req.body.team_id,1,7)
+    connection.release();
+  })
+}
 
 /*
   나갈 때 팀멤버들에게 전송
 */
 
 exports.team_member_walkout = (req,res) => {
-  stmt = 'SELECT user_id FROM team_member WHERE team_id = '+req.body.team_id;
+  stmt = 'SELECT user_id FROM team_member WHERE team_id = '+req.body.team_id+' AND team_id NOT IN '+parseInt(req.decoded.iss);
   pool.getConnection((err,connection) => {
     connection.query(stmt,(err,rows) => {
       if(err) protocol.error(res,err)
