@@ -4,6 +4,7 @@
 var team = {}
 var trust = {}
 var alert = {}
+var list={}
 
 //Team Protocol
 
@@ -95,8 +96,30 @@ alert.notFound = (res) => {
   })
 }
 
+list.success=(res,rows)=>{
+  return res.send({
+    "Code":100,
+    "Desc":"love you",
+    "Data":rows
+  });
+}
+
+list.error=(res,error)=>{
+  return res.send({
+    "Code":114,
+    "Desc":error.message
+  });
+}
+list.badRequset=(res)=>{
+  return res.send({
+    "Code":115,
+    "desc":"bad request"
+  });
+}
+
 module.exports={
   team:team,
   trust:trust,
-  alert:alert
+  alert:alert,
+  list:list
 }
