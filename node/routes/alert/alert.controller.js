@@ -38,14 +38,14 @@ const save_alert = (res,connection,user_id,sender,receiver,team_id,type,kind) =>
 
 exports.team_accept = (req,res) => {
   pool.getConnection((err,connection) => {
-      save_alert(res,connection,null,parseInt(req.decoded.Id),req.body.user_id,req.body.team_id,1,2)
+      save_alert(res,connection,null,parseInt(req.decoded.id),req.body.user_id,req.body.team_id,1,2)
       stmt = 'SELECT user_id FROM team_member WHERE team_id = ? AND user_id NOT IN (?,?)'
-      params = [parseInt(req.decoded.Id),req.body.user_id]
+      params = [parseInt(req.decoded.id),req.body.user_id]
       connection.query(stmt,params,(err,rows) => {
         if(rows == null)
           protocol.notFound(res)
         for(var i in rows){
-          save_alert(res,connection,user_id,parseInt(req.decoded.Id),req.body.user_id,req.body.team_id,1,9)
+          save_alert(res,connection,user_id,parseInt(req.decoded.id),req.body.user_id,req.body.team_id,1,9)
         }
       })
       connection.release()
