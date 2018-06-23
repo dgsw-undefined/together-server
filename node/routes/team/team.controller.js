@@ -19,7 +19,7 @@ var params = null;
 
 exports.list = (req, res) => {
   stmt = 'SELECT * FROM team WHERE id IN ('
-  stmt += 'SELECT team_id FROM team_member WHERE user_id = '+parseInt(req.decoded.iss)+')'
+  stmt += 'SELECT team_id FROM team_member WHERE user_id = '+parseInt(req.decoded.id)+')'
   pool.getConnection((err,connection) => {
     connection.query(stmt, (err, rows) => {
       if(err) return protocol.error(res,err)
@@ -36,7 +36,7 @@ exports.list = (req, res) => {
 
 exports.create = (req, res) => {
 
-  var user_id = req.decoded.iss;
+  var user_id = req.decoded.id;
   //todo DB구조 추가 했으니까 그거에 맞는 프로토콜, 코드 수정해야댐!
 
   //Team테이블에 팀 생성
@@ -72,7 +72,7 @@ exports.create = (req, res) => {
 
 
   exports.join = (req,res) => {
-    var user_id = parseInt(req.decoded.iss)
+    var user_id = parseInt(req.decoded.id)
 
     stmt = "INSERT INTO team_member (team_id,user_id,inviter_id) values (?,?,?,?)"
     params = [req.body.team_id,req.body.user_id,user_id]
@@ -92,7 +92,7 @@ exports.create = (req, res) => {
   */
 
   exports.kickout = (req,res) => {
-    var user_id = parseInt(req.decoded.iss)
+    var user_id = parseInt(req.decoded.id)
 
     pool.getConnection((err,connection) => {
 

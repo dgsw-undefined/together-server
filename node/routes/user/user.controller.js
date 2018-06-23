@@ -30,7 +30,7 @@ exports.available = (req,res) => {
 */
 
 exports.truster_list = (req,res) => {
-  stmt = 'SELECT * FROM truster WHERE user_id = '+parseInt(req.decoded.iss)
+  stmt = 'SELECT * FROM truster WHERE user_id = '+parseInt(req.decoded.id)
   pool.getConnection((err,connection) => {
     connection.query(stmt,(err,rows) => {
       if(err) protocol.error(res,err)
@@ -47,7 +47,7 @@ exports.truster_list = (req,res) => {
 
 exports.trust = (req, res) => {
   stmt = 'INSERT INTO truster (user_id,truster_id) VALUES (?,?)'
-  var params = [parseInt(req.decoded.iss),mysql.escape(req.body.trust_id)]
+  var params = [parseInt(req.decoded.id),mysql.escape(req.body.trust_id)]
 
   pool.getConnection((err,connection) => {
     connection.query(stmt,params,(err,rows) => {
@@ -63,7 +63,7 @@ exports.trust = (req, res) => {
 
 exports.untrust = (req, res) => {
   stmt = 'DELETE FROM truster WHERE user_id = ? AND truster_id = ?'
-  params = [parseInt(req.decoded.iss),mysql.escape(req.body.trust_id)]
+  params = [parseInt(req.decoded.id),mysql.escape(req.body.trust_id)]
   pool.getConnection((err,connection) => {
     connection.query(stmt,params,(err,rows) => {
       if(err) protocol.error(err)
