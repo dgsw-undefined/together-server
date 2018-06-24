@@ -28,6 +28,12 @@ const save_alert = (res,connection,user_id,sender,receiver,team_id,type,kind) =>
   팀장이 apply를 안 받으면 알림
 */
 
+exports.team_deny = (req,res) => {
+  pool.getConnection((err,connection) => {
+    save_alert(res,connection,null,parseInt(req.decoded.id),req.body.user_id,req.body.team_id,1,3)
+    connection.release();
+  })
+}
 
 
 /*
