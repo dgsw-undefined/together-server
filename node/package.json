@@ -13,6 +13,7 @@
     "express": "^4.16.3",
     "jsonwebtoken": "^8.2.1",
     "moment": "^2.22.2",
+    "morgan": "^1.9.0",
     "mysql": "^2.15.0",
     "yarn": "^1.6.0"
   }

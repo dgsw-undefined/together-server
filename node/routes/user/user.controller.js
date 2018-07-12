@@ -10,7 +10,7 @@ const pool = mysql_dbc.init();
 var stmt = null;
 
 /*
-  fetch /able
+  fetch /user/able
 */
 
 exports.available = (req,res) => {
@@ -19,14 +19,14 @@ exports.available = (req,res) => {
     connection.query(stmt,(err,rows) => {
       if(err) protocol.trust.error(res,err)
       if(rows == 0) protocol.notFound(res)
-      protocol.success(res)
+      protocol.trust.success(res)
     });
     connection.release()
   })
 }
 
 /*
-  truster_list
+  GET /user/trust
 */
 
 exports.truster_list = (req,res) => {
@@ -35,14 +35,14 @@ exports.truster_list = (req,res) => {
     connection.query(stmt,(err,rows) => {
       if(err) protocol.trust.error(res,err)
       if(rows == 0) protocol.notFound(res)
-      protocol.success(res,rows)
+      protocol.trust.success(res,rows)
     });
     connection.release()
   })
 }
 
 /*
-  trust
+  POST /user/trust
 */
 
 exports.trust = (req, res) => {
@@ -53,29 +53,75 @@ exports.trust = (req, res) => {
     connection.query(stmt,params,(err, rows) => {
       if(err) protocol.trust.error(res,err)
       console.log("decoded name : "+req.decoded.name+" req.body.trust_id : "+req.body.trust_id)
-      protocol.success(res)
+      protocol.trust.success(res)
     });
     connection.release()
   })
 }
 
 /*
-  untrust
+  PUT /user/update
+*/
+
+exports.update = (req,res) => {
+  stmt = 'UPDATE FROM user SET name = ? , pw = ? , email = ? , status = ? , interested = ? , github = ? , enroll_date = ? , field = ? , position = ?, phone = ?'
+  params = [
+    req.body.name,
+    req.body.pw,
+    req.body.email,
+    req.body.status,
+    req.body.interested,
+    req.body.github,
+    req.body.enroll_date,
+    req.body.field,
+    req.body.position,
+    req.body.phone
+  ]
+  pool.getConnection((err,connection) => {
+    connection.query(stmt,params,(err,rows) => {
+      if(err) protocol.user.error(res,err)
+      protocol.user.success(res)
+    })
+    connection.release();
+  })
+
+}
+
+/*
+  GET /user/detail
+*/
+
+exports.detail = (req,res) => {
+  stmt = 'SELECT * FROM user WHERE idx = '+req.body.user_id
+  pool.getConnection((err,connection) => {
+    if(err) protocol.user.error(res,err)
+    connection.query(stmt,(err,rows) => {
+      if(err) protocol.user.error(res,err)
+      protocol.user.success(res,rows)
+    })
+    connection.release();
+  })
+}
+
+/*
+  POST /user/untrust
 */
 
 exports.untrust = (req, res) => {
   stmt = 'DELETE FROM truster WHERE user_id = ? AND truster_id = ?'
   params = [parseInt(req.decoded.id),mysql.escape(req.body.trust_id)]
   pool.getConnection((err,connection) => {
+    if(err) protocol.error(err)
     connection.query(stmt,params,(err,rows) => {
       if(err) protocol.trust.error(err)
       protocol.success(res)
     })
+    connection.release();
   })
 }
 
 exports.userList=(req,res)=>{
-  let mode=req.params.mode;
+  var mode=req.params.mode;
   const date_Asending=()=>{
     stmt='SELECT name,enroll_date FROM user order by enroll_date';
     pool.getConnection((err,connection) => {

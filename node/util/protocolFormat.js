@@ -5,6 +5,7 @@ var team = {}
 var trust = {}
 var alert = {}
 var list={}
+var user={}
 
 //Team Protocol
 
@@ -32,6 +33,43 @@ team.success = (res,rows) => {
 team.notFound = (res) => {
   return res.send({
     "Code" : 202,
+    "Desc" : "Data not Found"
+  })
+}
+
+team.overlap = (res) => {
+  return res.send({
+    "Code" : 203,
+    "Desc" : "Data overlap"
+  })
+}
+
+//User Protocol
+
+//user error
+
+user.error = (res,err) => {
+  return res.send({
+   "Code" : 106,
+   "Desc" : err.message
+ });
+}
+
+//user Success
+
+user.success = (res,rows) => {
+  return res.send({
+   "Code" : 100,
+   "Desc" : "success",
+   "Data" : rows
+ });
+}
+
+//user Not Found
+
+user.notFound = (res) => {
+  return res.send({
+    "Code" : 107,
     "Desc" : "Data not Found"
   })
 }

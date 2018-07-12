@@ -39,14 +39,23 @@ exports.create = (req, res) => {
   var user_id = req.decoded.id;
   //todo DB구조 추가 했으니까 그거에 맞는 프로토콜, 코드 수정해야댐!
 
-  //Team테이블에 팀 생성
-  stmt = 'INSERT INTO team (name,docs,area,subject,leader_id,member_limit) values (?,?,?,?,?,?)'
-  params = [req.body.name,req.body.docs,req.body.area,req.body.subject,user_id,req.body.limit]
+  stmt = 'SELECT * FROM team WHERE name LIKE '+req.body.name
+
   pool.getConnection((err,connection) => {
+
+    connection.query(stmt,(err,rows) => {
+      if(rows != null)
+        return protocol.overlap(res)
+    })
+
+
+    //Team테이블에 팀 생성
+    stmt = 'INSERT INTO team (name,docs,area,subject,leader_id,member_limit) values (?,?,?,?,?,?)'
+    params = [req.body.name,req.body.docs,req.body.area,req.body.subject,user_id,req.body.limit]
+
     connection.query(stmt,params,(err,rows) => {
       if(err) return protocol.error(res,err)
     });
-
     //추가한 Team_id를 찾음
 
     stmt = 'SELECT id FROM team WHERE leader_id = \''+user_id+'\' GROUP BY id ORDER BY id DESC'
@@ -105,10 +114,31 @@ exports.create = (req, res) => {
 
         stmt = 'UPDATE team_member SET kickout_date = now() WHERE user = '+req.body.user_id
         connection.query(stmt,(err,rows) => {
-          if(err) protocol.err(res)
+          if(err) protocol.error(res)
           protocol.success(res)
         })
       })
       connection.release();
+    })
+  }
+
+  /*
+    Get /team/member
+  */
+
+  exports.member_list = (req, res) => {
+    var user_id = parseInt(req.decoded.id)
+
+    stmt = 'SELECT * FROM team_member WHERE team_id = ? AND kickout_date IS NULL AND walkout_date IS NULL;'
+    params = [req.body.team_id]
+
+    pool.getConnection((err,connection) => {
+
+      connection.query(stmt,params,(err,rows) => {
+        if(err) protocol.error(res,err)
+        protocol.success(res,rows)
+      })
+      connection.release();
+
     })
   }

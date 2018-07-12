@@ -5,5 +5,6 @@ router.get('/',controller.list)
 router.post('/',controller.create)
 router.post('/kickout',controller.kickout)
 router.post('/join',controller.join)
+router.get('/member',controller.member_list)
 
 module.exports = router
