@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken')
 const mysql_dbc = require('../../db/dbcon')();
 const mysql = require('mysql')
 const pool = mysql_dbc.init();
+
 //query 명령어
 var stmt = null;
 
@@ -59,12 +60,17 @@ exports.trust = (req, res) => {
   })
 }
 
+exports.test = (req,res) => {
+  console.log("dirname = "+__dirname)
+  return res.send({'success' : req.file})
+}
+
 /*
   PUT /user/update
 */
 
 exports.update = (req,res) => {
-  stmt = 'UPDATE FROM user SET name = ? , pw = ? , email = ? , status = ? , interested = ? , github = ? , enroll_date = ? , field = ? , position = ?, phone = ?'
+  stmt = 'UPDATE FROM user SET name = ? , pw = ? , email = ? , status = ? , interested = ? , github = ? , enroll_date = ? , field = ? , position = ?, phone = ?, profile = ?'
   params = [
     req.body.name,
     req.body.pw,
@@ -75,7 +81,8 @@ exports.update = (req,res) => {
     req.body.enroll_date,
     req.body.field,
     req.body.position,
-    req.body.phone
+    req.body.phone,
+    req.file.path
   ]
   pool.getConnection((err,connection) => {
     connection.query(stmt,params,(err,rows) => {
@@ -159,6 +166,6 @@ exports.userList=(req,res)=>{
   }else if(mode==3){//트러스터 수 내림차순
     truster_Desending()
   }else{
-    protocol.list.badRequset()
+    protocol.list.badRequset(res)
   }
 }

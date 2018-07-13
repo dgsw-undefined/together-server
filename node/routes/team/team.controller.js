@@ -75,6 +75,23 @@ exports.create = (req, res) => {
       connection.release();
     });
   }
+
+  /*
+    DELETE /team
+  */
+
+  exports.destroy = (req,res) => {
+    stmt = 'UPDATE FROM team SET destroy_date = now()'
+
+    pool.getConnection((err,connection) => {
+      connection.query(stmt,(err,rows) => {
+        if(err) protocol.error(res,err)
+        protocol.success(res)
+      })
+      connection.release();
+    })
+  }
+
   /*
     Post /team/join
   */
@@ -91,7 +108,6 @@ exports.create = (req, res) => {
         if(err) protocol.err(res)
         protocol.success(res)
       });
-
       connection.release();
     });
   }
