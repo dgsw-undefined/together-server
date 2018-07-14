@@ -146,7 +146,7 @@ exports.create = (req, res) => {
     var user_id = parseInt(req.decoded.id)
 
     stmt = 'SELECT * FROM team_member WHERE team_id = ? AND kickout_date IS NULL AND walkout_date IS NULL;'
-    params = [req.body.team_id]
+    params = [req.params.team_id]
 
     pool.getConnection((err,connection) => {
 
