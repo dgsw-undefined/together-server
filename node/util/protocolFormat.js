@@ -159,5 +159,6 @@ module.exports={
   team:team,
   trust:trust,
   alert:alert,
-  list:list
+  list:list,
+  user:user
 }

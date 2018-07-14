@@ -9,13 +9,24 @@ const mysql = require('mysql')
 const pool = mysql_dbc.init();
 //query 명령어
 var stmt = null;
-
 //query 값
-
 var params = null;
 /*
   Get /team
 */
+
+const overlap_check = (res,connection,team_id,user_id) => {
+
+  stmt = "SELECT * FROM team_member WHERE team_id = ? AND user_id = ?"
+  params = [team_id, user_id]
+
+  connection.query(stmt,params,(err,rows) => {
+    if(err) protocol.error(res,err)
+    if(rows != null) return true;
+    return false;
+  })
+
+}
 
 exports.list = (req, res) => {
   stmt = 'SELECT * FROM team WHERE id IN ('
@@ -29,6 +40,17 @@ exports.list = (req, res) => {
     });
   });
 }
+
+const save_alert = (res,connection,user_id,sender,receiver,team_id,type,kind) => {
+  stmt = 'INSERT INTO alert (user_id,type,sender,receiver,team_id,kind) values (?,?,?,?,?,?)'
+  params = [user_id,type,sender,receiver,team_id,kind]
+
+  connection.query(stmt,params,(err,rows) => {
+    if(err) protocol.error(res,err)
+    protocol.success(res)
+  })
+}
+
 
 /*
   Post /team
@@ -54,7 +76,7 @@ exports.create = (req, res) => {
     params = [req.body.name,req.body.docs,req.body.area,req.body.subject,user_id,req.body.limit]
 
     connection.query(stmt,params,(err,rows) => {
-      if(err) return protocol.error(res,err)
+      if (err) return protocol.error(res,err)
     });
     //추가한 Team_id를 찾음
 
@@ -96,7 +118,6 @@ exports.create = (req, res) => {
     Post /team/join
   */
 
-
   exports.join = (req,res) => {
     var user_id = parseInt(req.decoded.id)
 
@@ -104,6 +125,8 @@ exports.create = (req, res) => {
     params = [req.body.team_id,req.body.user_id,user_id]
 
     pool,getConnection((err,connection) => {
+
+
       connection.query(stmt,params,(err,rows) => {
         if(err) protocol.err(res)
         protocol.success(res)
@@ -144,9 +167,10 @@ exports.create = (req, res) => {
 
   exports.member_list = (req, res) => {
     var user_id = parseInt(req.decoded.id)
+    var send_data = {};
 
-    stmt = 'SELECT * FROM team_member WHERE team_id = ? AND kickout_date IS NULL AND walkout_date IS NULL;'
-    params = [req.body.team_id]
+    stmt = 'SELECT *, (SELECT name FROM user WHERE idx = tm.user_id) as name FROM team_member as tm WHERE team_id = ? AND kickout_date IS NULL AND walkout_date IS NULL;'
+    params = [req.params.team_id]
 
     pool.getConnection((err,connection) => {
 

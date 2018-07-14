@@ -7,6 +7,12 @@ const mysql_dbc = require('../../db/dbcon')();
 const mysql = require('mysql')
 const pool = mysql_dbc.init();
 
+//path
+const path = require('path')
+
+//file 명령어
+const fs = require('fs')
+
 //query 명령어
 var stmt = null;
 
@@ -61,6 +67,15 @@ exports.trust = (req, res) => {
 }
 
 exports.test = (req,res) => {
+  var mime = ["image/png","image/jpg","image/jpeg","image/svg"];
+  if(mime.indexOf(req.file.mimetype) === -1) {
+    fs.unlink(req.file.path,(err) => {
+      if(err) res.send({"error" : err.message})
+    })
+    return res.send({"error" : "1"})
+  }
+  var file_path = path.join("115.68.182.229/profile",req.file.filename)
+  console.log("path = "+file_path)
   console.log("dirname = "+__dirname)
   return res.send({'success' : req.file})
 }
@@ -70,6 +85,17 @@ exports.test = (req,res) => {
 */
 
 exports.update = (req,res) => {
+
+  //이미지 확장자 확인
+  var mime = ["image/png","image/jpg","image/jpeg","image/svg"];
+  if(mime.indexOf(req.file.mimetype) === -1) {
+    fs.unlink(req.file.path,(err) => {
+      if(err) protocol.user.error(res,err)
+    })
+    protocol.user.error(res,err)
+  }
+  var file_path = path.join("115.68.182.229/profile",req.file.filename)
+
   stmt = 'UPDATE FROM user SET name = ? , pw = ? , email = ? , status = ? , interested = ? , github = ? , enroll_date = ? , field = ? , position = ?, phone = ?, profile = ?'
   params = [
     req.body.name,
@@ -82,7 +108,7 @@ exports.update = (req,res) => {
     req.body.field,
     req.body.position,
     req.body.phone,
-    req.file.path
+    file_path
   ]
   pool.getConnection((err,connection) => {
     connection.query(stmt,params,(err,rows) => {
@@ -91,15 +117,14 @@ exports.update = (req,res) => {
     })
     connection.release();
   })
-
 }
 
 /*
-  GET /user/detail
+  GET /user/:user
 */
 
 exports.detail = (req,res) => {
-  stmt = 'SELECT * FROM user WHERE idx = '+req.body.user_id
+  stmt = 'SELECT * FROM user WHERE idx = '+req.params.user_id
   pool.getConnection((err,connection) => {
     if(err) protocol.user.error(res,err)
     connection.query(stmt,(err,rows) => {
