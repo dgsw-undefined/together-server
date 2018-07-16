@@ -15,6 +15,7 @@ const token = req.headers['authorization']
       if(token) {
         jwt.verify(token,req.app.get('jwt-secret'),(err, decoded) => {
           if(err) reject(err)
+          console.log("decoded-------- : "+decode);
             resolve(decode)
         })
       }
@@ -32,7 +33,8 @@ const token = req.headers['authorization']
 //decoded에 idx에 user의 idx값 저장됨
 
   verify.then((decoded) => {
-    req.decoded = decoded
+    if(!decoded)
+      req.decoded = decoded
     next()
   }).catch(next())
 }
