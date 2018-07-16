@@ -1,6 +1,7 @@
 const router = require('express').Router()
 const controller = require('./team.controller')
 
+router.get('/super_list/:user_id',controller.super_team_list)
 router.get('/user/:user_id',controller.list)
 router.post('/',controller.create)
 router.post('/kickout',controller.kickout)

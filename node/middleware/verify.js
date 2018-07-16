@@ -3,19 +3,22 @@ const verifyMiddleware = (req, res, next) => {
 
 const token = req.headers['authorization']
 
-  if(!token){
-    return res.send({
-      Code : 0,
-      Desc : 'not logged in'
-    });
-  }
+  // if(!token){
+  //   // return res.send({
+  //   //   Code : 0,
+  //   //   Desc : 'not logged in'
+  //   // });
+  // }
 
   const verify = new Promise(
     (resolve,reject) => {
-      jwt.verify(token,req.app.get('jwt-secret'),(err, decoded) => {
-        if(err) reject(err)
-        resolve(decoded)
-      })
+      if(token) {
+        jwt.verify(token,req.app.get('jwt-secret'),(err, decoded) => {
+          if(err) reject(err)
+            resolve(decode)
+        })
+      }
+      reject()
     }
   )
 
@@ -31,7 +34,7 @@ const token = req.headers['authorization']
   verify.then((decoded) => {
     req.decoded = decoded
     next()
-  }).catch(onError)
+  }).catch(next())
 }
 
 module.exports = verifyMiddleware

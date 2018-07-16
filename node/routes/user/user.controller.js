@@ -116,7 +116,7 @@ exports.update = (req,res) => {
 
 exports.detail = (req,res) => {
   var send_data = new Object();
-  stmt = 'SELECT * FROM user WHERE idx = '+req.params.user_id
+  stmt = 'SELECT *,(SELECT COUNT(*) FROM truster WHERE user_id = '+req.params.user_id+') AS trusting, (SELECT COUNT(*) FROM truster WHERE truster_id = '+req.params.user_id+') AS trusted  FROM user WHERE idx = '+req.params.user_id
   pool.getConnection((err,connection) => {
     if(err) protocol.user.error(res,err)
     connection.query(stmt,(err,rows) => {

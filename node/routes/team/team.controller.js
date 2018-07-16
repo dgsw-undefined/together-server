@@ -20,13 +20,17 @@ var params = null;
   Get /team
 */
 
+/**
+ * Functions
+ */
+
 const overlap_check = (res,connection,team_id,user_id) => {
 
   stmt = "SELECT * FROM team_member WHERE team_id = ? AND user_id = ?"
   params = [team_id, user_id]
 
   connection.query(stmt,params,(err,rows) => {
-    if(err) protocol.error(res,err)
+    if(err) return protocol.error(res,err)
     if(rows != null) return true;
     return false;
   })
@@ -38,13 +42,96 @@ exports.list = (req, res) => {
   stmt += 'SELECT team_id FROM team_member WHERE user_id = '+req.params.user_id+')'
   pool.getConnection((err,connection) => {
     connection.query(stmt, (err, rows) => {
-      if(err) return protocol.error(res,err)
-      if(rows == 0) return protocol.notFound(res)
-      return protocol.success(res,rows)
-      connection.release();
+      if(err) protocol.error(res,err)
+      if(rows == 0) protocol.notFound(res)
+      protocol.success(res,rows)
     });
+    connection.release();
   });
 }
+
+// exports.super_team_list2 = (req,res) => {
+//   var send_data = {};
+//   var team_list = new Array;
+//
+//   stmt = 'SELECT * FROM team WHERE id IN ('
+//   stmt += 'SELECT team_id FROM team_member WHERE user_id = '+req.params.user_id+')'
+//
+//   pool.getConnection((err,connection) => {
+//     if(err) protocol.error(res,err)
+//     connection.query(stmt, async (err, rows) => {
+//       if(err) protocol.error(res,err)
+//       send_data.team = rows
+//       stmt = 'SELECT *, (SELECT name FROM user WHERE idx = tm.user_id) as name FROM team_member as tm WHERE team_id = ? AND kickout_date IS NULL AND walkout_date IS NULL;'
+//       await for(var i in rows) {
+//         params = [rows[i].id]
+//         connection.query(stmt,params,(err,rows) => {
+//           if(err) protocol.error(res,err)
+//           member_list.push(rows)
+//         })
+//       }
+//       send_data.team_member = member_list
+//       protocol.success(res,send_data)
+//     })
+//   })
+// }
+
+exports.super_team_list = (req,res) => {
+
+  const getConnection = new Promise((resolve,reject) => {
+    pool.getConnection((err,connection) => {
+      if(err) reject(connection,err)
+      console.log('1')
+      resolve(connection)
+    })
+  })
+
+  const team_list = new Promise((resolve,reject) => {
+    var send_data = {};
+    stmt = 'SELECT * FROM team WHERE id IN ('
+    stmt += 'SELECT team_id FROM team_member WHERE user_id = '+req.params.user_id+')'
+    connection.query(stmt, (err, rows) => {
+      if(err) reject(connection,err)
+      send_data.team = rows
+      console.log('2')
+      resolve(connection,send_data,rows)
+    })
+  })
+
+  const team_member_list = new Promise((resolve,reject) => {
+    var member_list = new Array();
+    stmt = 'SELECT *, (SELECT name FROM user WHERE idx = tm.user_id) as name FROM team_member as tm WHERE team_id = ? AND kickout_date IS NULL AND walkout_date IS NULL;'
+    for(var i in rows) {
+      params = [rows[i].id]
+      connection.query(stmt,params,(err,rows) => {
+        if(err) reject(connection, err)
+
+        member_list.push(rows)
+      })
+    }
+    console.log('3')
+    resolve(connection,send_data,member_list)
+  })
+
+  const merge = new Promise((resolve,reject) => {
+    send_data.team_member = member_list
+    console.log('4')
+    protocol.success(res,send_data)
+  })
+
+  const onError = (connection,err) => {
+    connection.release();
+    protocol.error(res,err)
+  }
+  // Promise.all([getConnection,team_list,team_member_list,merge])
+  // .then((res)=>console.log(res))
+  // .catch(onError)
+  getConnection.then(team_list())
+  .then(team_member_list())
+  .then(merge())
+  .catch(onError())
+}
+
 
 
 /*
@@ -162,7 +249,6 @@ exports.create = (req, res) => {
   */
 
   exports.member_list = (req, res) => {
-    var user_id = parseInt(req.decoded.id)
 
     stmt = 'SELECT *, (SELECT name FROM user WHERE idx = tm.user_id) as name FROM team_member as tm WHERE team_id = ? AND kickout_date IS NULL AND walkout_date IS NULL;'
     params = [req.params.team_id]
@@ -170,10 +256,9 @@ exports.create = (req, res) => {
     pool.getConnection((err,connection) => {
 
       connection.query(stmt,params,(err,rows) => {
-        if(err) protocol.error(res,err)
+        if(err) protocol.error(res,err);
         protocol.success(res,rows)
       })
       connection.release();
-
     })
   }
