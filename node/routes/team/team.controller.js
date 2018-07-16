@@ -7,6 +7,11 @@ const moment = require('moment')
 const mysql_dbc = require('../../db/dbcon')();
 const mysql = require('mysql')
 const pool = mysql_dbc.init();
+
+//alert 연결
+
+const alert = require('../alert/alert.controller')
+
 //query 명령어
 var stmt = null;
 //query 값
@@ -30,7 +35,7 @@ const overlap_check = (res,connection,team_id,user_id) => {
 
 exports.list = (req, res) => {
   stmt = 'SELECT * FROM team WHERE id IN ('
-  stmt += 'SELECT team_id FROM team_member WHERE user_id = '+parseInt(req.decoded.id)+')'
+  stmt += 'SELECT team_id FROM team_member WHERE user_id = '+req.params.user_id+')'
   pool.getConnection((err,connection) => {
     connection.query(stmt, (err, rows) => {
       if(err) return protocol.error(res,err)
@@ -39,16 +44,6 @@ exports.list = (req, res) => {
       connection.release();
     });
   });
-}
-
-const save_alert = (res,connection,user_id,sender,receiver,team_id,type,kind) => {
-  stmt = 'INSERT INTO alert (user_id,type,sender,receiver,team_id,kind) values (?,?,?,?,?,?)'
-  params = [user_id,type,sender,receiver,team_id,kind]
-
-  connection.query(stmt,params,(err,rows) => {
-    if(err) protocol.error(res,err)
-    protocol.success(res)
-  })
 }
 
 
@@ -67,22 +62,22 @@ exports.create = (req, res) => {
 
     connection.query(stmt,(err,rows) => {
       if(rows != null)
-        return protocol.overlap(res)
+        protocol.overlap(res)
     })
 
 
     //Team테이블에 팀 생성
     stmt = 'INSERT INTO team (name,docs,area,subject,leader_id,member_limit) values (?,?,?,?,?,?)'
-    params = [req.body.name,req.body.docs,req.body.area,req.body.subject,user_id,req.body.limit]
+    params = [req.body.name,req.body.docs,req.body.area,req.body.subject,user_id,req.body.member_limit]
 
     connection.query(stmt,params,(err,rows) => {
-      if (err) return protocol.error(res,err)
+      if (err) protocol.error(res,err)
     });
     //추가한 Team_id를 찾음
 
     stmt = 'SELECT id FROM team WHERE leader_id = \''+user_id+'\' GROUP BY id ORDER BY id DESC'
     connection.query(stmt,(err,rows) => {
-      if(err) return protocol.error(res,err)
+      if(err) protocol.error(res,err)
 
       //찾은 Team_id로 리더를 Team_member테이블에 삽입
 
@@ -90,10 +85,11 @@ exports.create = (req, res) => {
       params = [rows[0].id,user_id,req.body.field,user_id,1]
 
       connection.query(stmt,params,(err,rows) => {
-        if(err) return protocol.error(res,err)
-        return protocol.success(res)
+        if(err) protocol.error(res,err)
+        protocol.success(res)
         })
       });
+
       connection.release();
     });
   }
@@ -167,7 +163,6 @@ exports.create = (req, res) => {
 
   exports.member_list = (req, res) => {
     var user_id = parseInt(req.decoded.id)
-    var send_data = {};
 
     stmt = 'SELECT *, (SELECT name FROM user WHERE idx = tm.user_id) as name FROM team_member as tm WHERE team_id = ? AND kickout_date IS NULL AND walkout_date IS NULL;'
     params = [req.params.team_id]

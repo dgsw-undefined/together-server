@@ -10,7 +10,7 @@ const pool = mysql_dbc.init();
 //path
 const path = require('path')
 
-//file 명령어
+//file 관련
 const fs = require('fs')
 
 //query 명령어
@@ -66,35 +66,26 @@ exports.trust = (req, res) => {
   })
 }
 
-exports.test = (req,res) => {
-  var mime = ["image/png","image/jpg","image/jpeg","image/svg"];
-  if(mime.indexOf(req.file.mimetype) === -1) {
-    fs.unlink(req.file.path,(err) => {
-      if(err) res.send({"error" : err.message})
-    })
-    return res.send({"error" : "1"})
-  }
-  var file_path = path.join("115.68.182.229/profile",req.file.filename)
-  console.log("path = "+file_path)
-  console.log("dirname = "+__dirname)
-  return res.send({'success' : req.file})
-}
-
 /*
   PUT /user/update
 */
 
 exports.update = (req,res) => {
 
-  //이미지 확장자 확인
-  var mime = ["image/png","image/jpg","image/jpeg","image/svg"];
-  if(mime.indexOf(req.file.mimetype) === -1) {
-    fs.unlink(req.file.path,(err) => {
-      if(err) protocol.user.error(res,err)
-    })
-    protocol.user.error(res,err)
+  var file_path = null
+  //파일을 업로드 했으면
+
+  if(req.file){
+    //이미지 확장자 확인
+    var mime = ["image/png","image/jpg","image/jpeg","image/svg"];
+    if(mime.indexOf(req.file.mimetype) === -1) {
+      fs.unlink(req.file.path,(err) => {
+        if(err) protocol.file.error(res,err)
+      })
+      protocol.file.invalid(res)
+    }
+    file_path = path.join("115.68.182.229/profile",req.file.filename)
   }
-  var file_path = path.join("115.68.182.229/profile",req.file.filename)
 
   stmt = 'UPDATE FROM user SET name = ? , pw = ? , email = ? , status = ? , interested = ? , github = ? , enroll_date = ? , field = ? , position = ?, phone = ?, profile = ?'
   params = [
@@ -124,13 +115,29 @@ exports.update = (req,res) => {
 */
 
 exports.detail = (req,res) => {
+  var send_data = new Object();
   stmt = 'SELECT * FROM user WHERE idx = '+req.params.user_id
   pool.getConnection((err,connection) => {
     if(err) protocol.user.error(res,err)
     connection.query(stmt,(err,rows) => {
       if(err) protocol.user.error(res,err)
-      protocol.user.success(res,rows)
+      if(rows == null) protocol.user.notFound(res)
+      send_data = rows;
     })
+    stmt = 'SELECT tec_name FROM tec WHERE user_id = '+req.params.user_id
+
+    var tec = new Array();
+
+    connection.query(stmt,(err,rows) => {
+      if(rows != null){
+        for (var cnt in rows) {
+          tec.push(rows[cnt].tec_name)
+        }
+        send_data[0].tec = tec
+      }
+      protocol.user.success(res,send_data)
+    })
+
     connection.release();
   })
 }
@@ -155,7 +162,7 @@ exports.untrust = (req, res) => {
 exports.userList=(req,res)=>{
   var mode=req.params.mode;
   const date_Asending=()=>{
-    stmt='SELECT name,enroll_date FROM user order by enroll_date';
+    stmt='SELECT * FROM user order by enroll_date';
     pool.getConnection((err,connection) => {
       connection.query(stmt,(err,rows) => {
         if(err) protocol.list.error(res.err)
@@ -165,7 +172,7 @@ exports.userList=(req,res)=>{
     })
   }
   const date_Desending=()=>{
-    stmt='SELECT name,enroll_date FROM user order by enroll_date DESC';
+    stmt='SELECT * FROM user order by enroll_date DESC';
     pool.getConnection((err,connection) => {
       connection.query(stmt,(err,rows) => {
         if(err) protocol.list.error(res.err)

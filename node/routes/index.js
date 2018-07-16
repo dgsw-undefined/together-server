@@ -3,7 +3,10 @@ const verifyMiddleware = require('../middleware/verify');
 
 const team = require('./team')
 const user = require('./user')
-const alert = require('./alert')
+
+//test
+const test = require('./test')
+
 //Mysql 접속 확인
 
 const mysql_dbc = require('../db/dbcon')();
@@ -14,15 +17,13 @@ router.get('/',(req,res) => {
   res.send("This is Node Page!!!");
 });
 
+router.use('/test', test)
+
 router.use('/team', verifyMiddleware)
 router.use('/team', team)
 
 router.use('/user', verifyMiddleware)
 router.use('/user', user)
-
-router.use('/alert', verifyMiddleware)
-router.use('/alert', alert)
-
 
 module.exports = router
 

@@ -6,9 +6,16 @@ const morgan = require('morgan')
 const multer = require('multer')
 const path = require('path')
 
+//cors 설정
+const cors = require('cors')
+
 //Load Config
 const config = require('./config');
 const router = require('./routes')
+
+//CORS 설정
+
+app.use(cors());
 
 app.use(bodyParser.urlencoded({extended : false}))
 app.use(bodyParser.json())

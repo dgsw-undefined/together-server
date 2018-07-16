@@ -6,6 +6,23 @@ var trust = {}
 var alert = {}
 var list={}
 var user={}
+var file = {}
+
+//File protocol
+
+file.invalid = (res) => {
+  return res.send({
+   "Code" : 501,
+   "Desc" : "invalid data"
+ });
+}
+
+file.error = (res,err) => {
+  return res.send({
+   "Code" : 502,
+   "Desc" : err.message
+ });
+}
 
 //Team Protocol
 
@@ -58,6 +75,7 @@ user.error = (res,err) => {
 //user Success
 
 user.success = (res,rows) => {
+  console.log("rows : "+JSON.stringify(rows))
   return res.send({
    "Code" : 100,
    "Desc" : "success",
