@@ -24,10 +24,11 @@ const token = req.headers['authorization']
   )
 
   const onError = (error) => {
-    res.send({
-      Code : 0,
-      Desc : err.message
-    })
+    next()
+    // res.send({
+    //   Code : 0,
+    //   Desc : err.message
+    // })
   }
 
 //decoded에 idx에 user의 idx값 저장됨
@@ -36,7 +37,7 @@ const token = req.headers['authorization']
     if(!decoded)
       req.decoded = decoded
     next()
-  }).catch(next())
+  }).catch(onError)
 }
 
 module.exports = verifyMiddleware

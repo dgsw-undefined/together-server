@@ -12,6 +12,11 @@ const pool = mysql_dbc.init();
 
 const alert = require('../alert/alert.controller')
 
+/*
+  TODO 팀 프로필사진 추가한 api 만들어야됩니다!
+*/
+
+
 //query 명령어
 var stmt = null;
 //query 값
@@ -93,7 +98,7 @@ exports.super_team_list = (req,res) => {
   pool.getConnection((err,connection) => {
     if(err) protocol.error(res,err)
     connection.query(stmt,async (err,rows) => {
-      stmt = 'SELECT * FROM team_member WHERE team_id = ?;';
+      stmt = 'SELECT *,(SELECT name FROM user WHERE idx = tmb.user_id) as name FROM team_member as tmb WHERE team_id = ?;';
       for(var i in rows){
         temp_data.team = rows[i]
         connection.query(stmt,rows[i].id,(err,rows2) => {

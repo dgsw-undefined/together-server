@@ -75,7 +75,6 @@ user.error = (res,err) => {
 //user Success
 
 user.success = (res,rows) => {
-  console.log("rows : "+JSON.stringify(rows))
   return res.send({
    "Code" : 100,
    "Desc" : "success",
