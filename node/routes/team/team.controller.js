@@ -64,6 +64,12 @@ exports.super_team_list2 = (req,res) => {
       if(err) protocol.error(res,err)
       send_data.team = rows
       stmt = 'SELECT *, (SELECT name FROM user WHERE idx = tm.user_id) as name FROM team_member as tm WHERE team_id = ? AND kickout_date IS NULL AND walkout_date IS NULL;'
+      // await rows.map((row, connection) => {
+      //   connection.query(stmt, row.id, (err, rows2)) => {
+      //     if(err) protocol.error(res, err)
+      //     member_list.push(rows2)
+      //   }
+      // })
       for(var i = 0; i < rows.length; i++) {
         params = [rows[i].id]
         connection.query(stmt,params, (err,rows2) => {
@@ -78,58 +84,98 @@ exports.super_team_list2 = (req,res) => {
   })
 }
 
-// async function member_list(conneciton,rows) {
-// stmt = 'SELECT *, (SELECT name FROM user WHERE idx = tm.user_id) as name FROM team_member as tm WHERE team_id = ? AND kickout_date IS NULL AND walkout_date IS NULL;'
-//   var temp_list = new Array();
-//   for(const team of rows){
-//     connection.query(stmt,params,(err,rows) => {
-//         if(err) protocol.error(res,err)
-//         temp_list.push(rows)
-//       })
-//   }
-//   return temp_list
-// }
-
 exports.super_team_list = (req,res) => {
+  stmt = 'SELECT *,(SELECT name FROM user WHERE idx = user_id) FROM team as tm LEFT JOIN team_member as tmb ON tm.id = tmb.team_id UNION SELECT *,(SELECT name FROM user WHERE idx = user_id) FROM team as tm RIGHT JOIN team_member as tmb ON tm.id = tmb.team_id';
 
-  const getConnection = () => new Promise((resolve,reject) => {
-    pool.getConnection((err,connection) => {
-      if(err) reject(connection,err)
-      console.log('1')
-      resolve(connection)
-    })
-  })
-
-  const team_list = (connection) => new Promise((resolve,reject) => {
-    var send_data = {};
-    stmt = 'SELECT * FROM team WHERE id IN (SELECT team_id FROM team_member WHERE user_id = ' + req.params.user_id + ')'
+  pool.getConnection((err,connection) => {
+    if(err) protocol.error(res,err)
     connection.query(stmt, (err, rows) => {
-      if(err) reject(connection, err)
-      send_data.team = rows
-      console.log('2')
-      resolve({ send_data, rows })
+      if(err) protocol.error(res,err)
+      protocol.success(res,rows)
     })
+    connection.release();
   })
+}
 
-  const team_member_list = (connection, send_data, rows) => new Promise((resolve,reject) => {
-    var member_list = new Array();
-    stmt = 'SELECT *, (SELECT name FROM user WHERE idx = tm.user_id) as name FROM team_member as tm WHERE team_id = ? AND kickout_date IS NULL AND walkout_date IS NULL;'
-    new Promise((resolve, reject) => {
-      for(var i = 0; i <= rows.length; i++) {
-        if (i >= rows.length) {
-          resolve(member_list);
-        }
+exports.super_team_list_user_id = (req,res) => {
+  var send_data = {};
+  var member_list = new Array;
+  const waitFor = (ms) => new Promise(r => setTimeout(r, ms))
+
+  stmt = 'SELECT * FROM team WHERE id IN ('
+  stmt += 'SELECT team_id FROM team_member WHERE user_id = '+req.params.user_id+')'
+
+  pool.getConnection((err,connection) => {
+    if(err) protocol.error(res,err)
+    connection.query(stmt, async (err, rows) => {
+      if(err) protocol.error(res,err)
+      send_data.team = rows
+      stmt = 'SELECT *, (SELECT name FROM user WHERE idx = tm.user_id) as name FROM team_member as tm WHERE team_id = ? AND kickout_date IS NULL AND walkout_date IS NULL;'
+      // await rows.map((row, connection) => {
+      //   connection.query(stmt, row.id, (err, rows2)) => {
+      //     if(err) protocol.error(res, err)
+      //     member_list.push(rows2)
+      //   }
+      // })
+      for(var i = 0; i < rows.length; i++) {
         params = [rows[i].id]
-        connection.query(stmt,params,(err,rows) => {
-          if(err) reject(connection, err)
-          member_list.push(rows)
-
+        connection.query(stmt,params, (err,rows2) => {
+          if(err) protocol.error(res,err)
+          member_list.push(rows2);
         })
       }
-    }).then((res) => {
-      console.log(member_list);
-      // console.log(res);
-    });
+      await waitFor(50)
+      send_data.team_member = member_list
+      protocol.success(res,send_data)
+    })
+    connection.release();
+  })
+}
+
+/*
+  super_team_list ver.Promise
+*/
+
+// exports.super_team_list2 = (req,res) => {
+//
+//   const getConnection = () => new Promise((resolve,reject) => {
+//     pool.getConnection((err,connection) => {
+//       if(err) reject(connection,err)
+//       console.log('1')
+//       resolve(connection)
+//     })
+//   })
+//
+//   const team_list = (connection) => new Promise((resolve,reject) => {
+//     var send_data = {};
+//     stmt = 'SELECT * FROM team WHERE id IN (SELECT team_id FROM team_member WHERE user_id = ' + req.params.user_id + ')'
+//     connection.query(stmt, (err, rows) => {
+//       if(err) reject(connection, err)
+//       send_data.team = rows
+//       console.log('2')
+//       resolve({ send_data, rows })
+//     })
+//   })
+//
+//   const team_member_list = (connection, send_data, rows) => new Promise((resolve,reject) => {
+//     var member_list = new Array();
+//     stmt = 'SELECT *, (SELECT name FROM user WHERE idx = tm.user_id) as name FROM team_member as tm WHERE team_id = ? AND kickout_date IS NULL AND walkout_date IS NULL;'
+//     new Promise((resolve, reject) => {
+//       for(var i = 0; i <= rows.length; i++) {
+//         if (i >= rows.length) {
+//           resolve(member_list);
+//         }
+//         params = [rows[i].id]
+//         connection.query(stmt,params,(err,rows) => {
+//           if(err) reject(connection, err)
+//           member_list.push(rows)
+//
+//         })
+//       }
+//     }).then((res) => {
+//       console.log(member_list);
+//       // console.log(res);
+//     });
 
     // new Promise((resolve, reject) => {
     //   Object.keys(rows).forEach((key) => {
@@ -151,48 +197,48 @@ exports.super_team_list = (req,res) => {
     // }).catch((err) => {
     //   console.log(err);
     // });
-
-    console.log('3')
-    resolve({ send_data, member_list })
-  });
-
-  const merge = (connection, send_data, member_list) => new Promise((resolve,reject) => {
-
-    send_data.team_member = member_list
-    console.log('4')
-    protocol.success(res,send_data)
-  })
-
-  const onError = (connection,err) => {
-    connection.release();
-    protocol.error(res,err)
-  }
-
-  getConnection().then((connection) => {
-    team_list(connection).then((res) => {
-      team_member_list(connection, res.send_data, res.rows).then((res) => {
-        merge(connection, res.send_data, res.member_list).then(() => {
-          console.log('success');
-        }).catch((err) => {
-          console.log(err);
-        });
-      }).catch((err) => {
-        console.log(err);
-      });
-    }).catch((err) => {
-      console.log(err);
-    });
-  }).catch((err) => {
-    console.log(err);
-  });
-  // Promise.all([getConnection,team_list,team_member_list,merge])
-  // .then((res)=>console.log(res))
-  // .catch((err)=>console.log(err));
-  // getConnection.then(team_list())
-  // .then(team_member_list())
-  // .then(merge())
-  // .catch(onError())
-}
+//
+//     console.log('3')
+//     resolve({ send_data, member_list })
+//   });
+//
+//   const merge = (connection, send_data, member_list) => new Promise((resolve,reject) => {
+//
+//     send_data.team_member = member_list
+//     console.log('4')
+//     protocol.success(res,send_data)
+//   })
+//
+//   const onError = (connection,err) => {
+//     connection.release();
+//     protocol.error(res,err)
+//   }
+//
+//   getConnection().then((connection) => {
+//     team_list(connection).then((res) => {
+//       team_member_list(connection, res.send_data, res.rows).then((res) => {
+//         merge(connection, res.send_data, res.member_list).then(() => {
+//           console.log('success');
+//         }).catch((err) => {
+//           console.log(err);
+//         });
+//       }).catch((err) => {
+//         console.log(err);
+//       });
+//     }).catch((err) => {
+//       console.log(err);
+//     });
+//   }).catch((err) => {
+//     console.log(err);
+//   });
+//   // Promise.all([getConnection,team_list,team_member_list,merge])
+//   // .then((res)=>console.log(res))
+//   // .catch((err)=>console.log(err));
+//   // getConnection.then(team_list())
+//   // .then(team_member_list())
+//   // .then(merge())
+//   // .catch(onError())
+// }
 
 
 
