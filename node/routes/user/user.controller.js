@@ -161,11 +161,24 @@ exports.untrust = (req, res) => {
 
 exports.userList=(req,res)=>{
   var mode=req.params.mode;
+  const waitFor = (ms) => new Promise(r => setTimeout(r, ms))
   const date_Asending=()=>{
     stmt='SELECT * FROM user order by enroll_date';
     pool.getConnection((err,connection) => {
-      connection.query(stmt,(err,rows) => {
+      connection.query(stmt,async (err,rows) => {
         if(err) protocol.list.error(res.err)
+        for(let i in rows){
+          let sql='SELECT tec_name FROM tec where user_id='+rows[i].idx;
+          connection.query(sql,(err,row)=>{
+            if(err) protocol.list.error(res.err)
+            let temp=[]
+            for(let j in row){
+              temp.push(row[j].tec_name)
+            }
+            rows[i].tec=temp
+          })
+        }
+        await waitFor(50)
         protocol.list.success(res,rows)
       });
       connection.release()

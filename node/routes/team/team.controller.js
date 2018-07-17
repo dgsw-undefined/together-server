@@ -50,50 +50,67 @@ exports.list = (req, res) => {
   });
 }
 
-exports.super_team_list2 = (req,res) => {
-  var send_data = {};
-  var member_list = new Array;
-  const waitFor = (ms) => new Promise(r => setTimeout(r, ms))
-
-  stmt = 'SELECT * FROM team WHERE id IN ('
-  stmt += 'SELECT team_id FROM team_member WHERE user_id = '+req.params.user_id+')'
-
-  pool.getConnection((err,connection) => {
-    if(err) protocol.error(res,err)
-    connection.query(stmt, async (err, rows) => {
-      if(err) protocol.error(res,err)
-      send_data.team = rows
-      stmt = 'SELECT *, (SELECT name FROM user WHERE idx = tm.user_id) as name FROM team_member as tm WHERE team_id = ? AND kickout_date IS NULL AND walkout_date IS NULL;'
-      // await rows.map((row, connection) => {
-      //   connection.query(stmt, row.id, (err, rows2)) => {
-      //     if(err) protocol.error(res, err)
-      //     member_list.push(rows2)
-      //   }
-      // })
-      for(var i = 0; i < rows.length; i++) {
-        params = [rows[i].id]
-        connection.query(stmt,params, (err,rows2) => {
-          if(err) protocol.error(res,err)
-          member_list.push(rows2);
-        })
-      }
-      await waitFor(50)
-      send_data.team_member = member_list
-      protocol.success(res,send_data)
-    })
-  })
-}
+// exports.super_team_list2 = (req,res) => {
+//   var send_data = {};
+//   var member_list = new Array;
+//   const waitFor = (ms) => new Promise(r => setTimeout(r, ms))
+//
+//   stmt = 'SELECT * FROM team WHERE id IN ('
+//   stmt += 'SELECT team_id FROM team_member WHERE user_id = '+req.params.user_id+')'
+//
+//   pool.getConnection((err,connection) => {
+//     if(err) protocol.error(res,err)
+//     connection.query(stmt, async (err, rows) => {
+//       if(err) protocol.error(res,err)
+//       send_data.team = rows
+//       stmt = 'SELECT *, (SELECT name FROM user WHERE idx = tm.user_id) as name FROM team_member as tm WHERE team_id = ? AND kickout_date IS NULL AND walkout_date IS NULL;'
+//       // await rows.map((row, connection) => {
+//       //   connection.query(stmt, row.id, (err, rows2)) => {
+//       //     if(err) protocol.error(res, err)
+//       //     member_list.push(rows2)
+//       //   }
+//       // })
+//       for(var i = 0; i < rows.length; i++) {
+//         params = [rows[i].id]
+//         connection.query(stmt,params, (err,rows2) => {
+//           if(err) protocol.error(res,err)
+//           member_list.push(rows2);
+//         })
+//       }
+//       await waitFor(50)
+//       send_data.team_member = member_list
+//       protocol.success(res,send_data)
+//     })
+//   })
+// }
 
 exports.super_team_list = (req,res) => {
-  stmt = 'SELECT *,(SELECT name FROM user WHERE idx = user_id) FROM team as tm LEFT JOIN team_member as tmb ON tm.id = tmb.team_id UNION SELECT *,(SELECT name FROM user WHERE idx = user_id) FROM team as tm RIGHT JOIN team_member as tmb ON tm.id = tmb.team_id';
-
+  stmt = 'SELECT * FROM team;';
+  const waitFor = (ms) => new Promise(r => setTimeout(r, ms))
+  let send_data = [];
+  let temp_data = {};
+  let members = [];
   pool.getConnection((err,connection) => {
     if(err) protocol.error(res,err)
-    connection.query(stmt, (err, rows) => {
-      if(err) protocol.error(res,err)
-      protocol.success(res,rows)
-    })
-    connection.release();
+    connection.query(stmt,async (err,rows) => {
+      stmt = 'SELECT * FROM team_member WHERE team_id = ?;';
+      for(var i in rows){
+        temp_data.team = rows[i]
+        connection.query(stmt,rows[i].id,(err,rows2) => {
+          for(var j in rows2){
+            members.push(rows2[j])
+          }
+          temp_data.team_member = members
+          members = [];
+        })
+        await waitFor(50)
+        send_data.push(temp_data)
+        temp_data = {};
+      }
+      await waitFor(50)
+      protocol.success(res,send_data)
+    });
+    connection.release()
   })
 }
 
