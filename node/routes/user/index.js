@@ -16,10 +16,11 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage, limits: {fileSize: MAX_FILE_SIZE }})
 
 router.patch('/able', controller.available)
-router.get('/trust',controller.truster_list)
+router.get('/trusted/:user_id',controller.trusted_list)
+router.get('/trusting/:user_id',controller.trusting_list)
 router.post('/trust',controller.trust)
 router.post('/untrust',controller.untrust)
-router.get('/:user_id',controller.detail)
+// router.get('/:user_id',controller.detail)
 router.put('/update',upload.single('profile'),controller.update)
 router.get('/list/:mode',controller.userList)
 

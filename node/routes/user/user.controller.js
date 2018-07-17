@@ -24,8 +24,8 @@ exports.available = (req, res) => {
   stmt = 'UPDATE user SET status = ' + mysql.escape(req.body.status)
   pool.getConnection((err, connection) => {
     connection.query(stmt, (err, rows) => {
-      if (err) protocol.trust.error(res, err)
-      if (rows == 0) protocol.notFound(res)
+      if (err) return protocol.trust.error(res, err)
+      if (rows == 0) return protocol.notFound(res)
       protocol.trust.success(res)
     });
     connection.release()
@@ -33,15 +33,31 @@ exports.available = (req, res) => {
 }
 
 /*
-  GET /user/trust
+  GET /user/trusted/:user_id
 */
 
-exports.truster_list = (req, res) => {
-  stmt = 'SELECT * FROM truster WHERE user_id = ' + parseInt(req.decoded.id)
+exports.trusting_list = (req, res) => {
+  stmt = 'SELECT * FROM truster WHERE user_id = ' + req.params.user_id
   pool.getConnection((err, connection) => {
     connection.query(stmt, (err, rows) => {
-      if (err) protocol.trust.error(res, err)
-      if (rows == 0) protocol.notFound(res)
+      if (err) return protocol.trust.error(res, err)
+      if (rows == 0) return protocol.trust.notFound(res)
+      protocol.trust.success(res, rows)
+    });
+    connection.release()
+  })
+}
+
+/*
+  GET /user/trusting/:user_id
+*/
+
+exports.trusted_list = (req, res) => {
+  stmt = 'SELECT * FROM truster WHERE truster_id = ' + req.params.user_id
+  pool.getConnection((err, connection) => {
+    connection.query(stmt, (err, rows) => {
+      if (err) return protocol.trust.error(res, err)
+      if (rows == 0) return protocol.trust.notFound(res)
       protocol.trust.success(res, rows)
     });
     connection.release()
@@ -58,7 +74,7 @@ exports.trust = (req, res) => {
 
   pool.getConnection((err, connection) => {
     connection.query(stmt, params, (err, rows) => {
-      if (err) protocol.trust.error(res, err)
+      if (err) return protocol.trust.error(res, err)
       console.log("decoded name : " + req.decoded.name + " req.body.trust_id : " + req.body.trust_id)
       protocol.trust.success(res)
     });
@@ -80,7 +96,7 @@ exports.update = (req, res) => {
     var mime = ["image/png", "image/jpg", "image/jpeg", "image/svg"];
     if (mime.indexOf(req.file.mimetype) === -1) {
       fs.unlink(req.file.path, (err) => {
-        if (err) protocol.file.error(res, err)
+        if (err) return protocol.file.error(res, err)
       })
       protocol.file.invalid(res)
     }
@@ -103,7 +119,7 @@ exports.update = (req, res) => {
   ]
   pool.getConnection((err, connection) => {
     connection.query(stmt, params, (err, rows) => {
-      if (err) protocol.user.error(res, err)
+      if (err) return protocol.user.error(res, err)
       protocol.user.success(res)
     })
     connection.release();
@@ -120,9 +136,9 @@ exports.detail = (req, res) => {
   const waitFor = (ms) => new Promise(r => setTimeout(r, ms))
   stmt = 'SELECT *,(SELECT COUNT(*) FROM truster WHERE user_id = ' + req.params.user_id + ') AS trusting, (SELECT COUNT(*) FROM truster WHERE truster_id = ' + req.params.user_id + ') AS trusted  FROM user WHERE idx = ' + req.params.user_id
   pool.getConnection((err, connection) => {
-    if (err) protocol.user.error(res, err)
+    if (err) return protocol.user.error(res, err)
     connection.query(stmt, async (err, rows) => {
-      if (err) protocol.user.error(res, err)
+      if (err) return protocol.user.error(res, err)
       send_data = rows;
     })
 
@@ -160,9 +176,9 @@ exports.untrust = (req, res) => {
   stmt = 'DELETE FROM truster WHERE user_id = ? AND truster_id = ?'
   params = [parseInt(req.decoded.id), mysql.escape(req.body.trust_id)]
   pool.getConnection((err, connection) => {
-    if (err) protocol.error(err)
+    if (err) return protocol.error(err)
     connection.query(stmt, params, (err, rows) => {
-      if (err) protocol.trust.error(err)
+      if (err) return protocol.trust.error(err)
       protocol.success(res)
     })
     connection.release();
@@ -173,14 +189,14 @@ exports.userList = (req, res) => {
   var mode = req.params.mode;
   const waitFor = (ms) => new Promise(r => setTimeout(r, ms))
   const date_Asending = () => {
-    stmt = 'SELECT * FROM user order by enroll_date';
+    stmt = 'SELECT *,(SELECT COUNT(*) FROM truster WHERE user_id = user.idx) AS trusting, (SELECT COUNT(*) FROM truster WHERE truster_id = user.idx) AS trusted FROM user order by enroll_date';
     pool.getConnection((err, connection) => {
       connection.query(stmt, async (err, rows) => {
-        if (err) protocol.list.error(res.err)
+        if (err) return protocol.list.error(res.err)
         for (let i in rows) {
           let sql = 'SELECT tec_name FROM tec where user_id=' + rows[i].idx;
           connection.query(sql, (err, row) => {
-            if (err) protocol.list.error(res.err)
+            if (err) return protocol.list.error(res.err)
             let temp = []
             for (let j in row) {
               temp.push(row[j].tec_name)
@@ -198,7 +214,7 @@ exports.userList = (req, res) => {
     stmt = 'SELECT * FROM user order by enroll_date DESC';
     pool.getConnection((err, connection) => {
       connection.query(stmt, (err, rows) => {
-        if (err) protocol.list.error(res.err)
+        if (err) return protocol.list.error(res.err)
         protocol.list.success(res, rows)
       });
       connection.release()
@@ -208,7 +224,7 @@ exports.userList = (req, res) => {
     stmt = 'SELECT *,count(CASE WHEN user.idx=truster.truster_id THEN 1 END) as trustercount FROM user join truster on user.idx=truster.truster_id group by idx order by trustercount DESC';
     pool.getConnection((err, connection) => {
       connection.query(stmt, (err, rows) => {
-        if (err) protocol.list.error(res.err)
+        if (err) return protocol.list.error(res.err)
         protocol.list.success(res, rows)
       });
       connection.release()

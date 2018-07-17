@@ -47,8 +47,8 @@ exports.list = (req, res) => {
   stmt += 'SELECT team_id FROM team_member WHERE user_id = '+req.params.user_id+')'
   pool.getConnection((err,connection) => {
     connection.query(stmt, (err, rows) => {
-      if(err) protocol.error(res,err)
-      if(rows == 0) protocol.notFound(res)
+      if (err) return protocol.error(res,err);
+      if(rows == 0) return protocol.notFound(res)
       protocol.success(res,rows)
     });
     connection.release();
@@ -64,21 +64,21 @@ exports.list = (req, res) => {
 //   stmt += 'SELECT team_id FROM team_member WHERE user_id = '+req.params.user_id+')'
 //
 //   pool.getConnection((err,connection) => {
-//     if(err) protocol.error(res,err)
+//     if (err) return protocol.error(res,err)
 //     connection.query(stmt, async (err, rows) => {
-//       if(err) protocol.error(res,err)
+//       if (err) return protocol.error(res,err)
 //       send_data.team = rows
 //       stmt = 'SELECT *, (SELECT name FROM user WHERE idx = tm.user_id) as name FROM team_member as tm WHERE team_id = ? AND kickout_date IS NULL AND walkout_date IS NULL;'
 //       // await rows.map((row, connection) => {
 //       //   connection.query(stmt, row.id, (err, rows2)) => {
-//       //     if(err) protocol.error(res, err)
+//       //     if (err) return protocol.error(res, err)
 //       //     member_list.push(rows2)
 //       //   }
 //       // })
 //       for(var i = 0; i < rows.length; i++) {
 //         params = [rows[i].id]
 //         connection.query(stmt,params, (err,rows2) => {
-//           if(err) protocol.error(res,err)
+//           if (err) return protocol.error(res,err)
 //           member_list.push(rows2);
 //         })
 //       }
@@ -96,7 +96,7 @@ exports.super_team_list = (req,res) => {
   let temp_data = {};
   let members = [];
   pool.getConnection((err,connection) => {
-    if(err) protocol.error(res,err)
+    if (err) return protocol.error(res,err)
     connection.query(stmt,async (err,rows) => {
       stmt = 'SELECT *,(SELECT name FROM user WHERE idx = tmb.user_id) as name FROM team_member as tmb WHERE team_id = ?;';
       for(var i in rows){
@@ -128,21 +128,21 @@ exports.super_team_list_user_id = (req,res) => {
   stmt += 'SELECT team_id FROM team_member WHERE user_id = '+req.params.user_id+')'
 
   pool.getConnection((err,connection) => {
-    if(err) protocol.error(res,err)
+    if (err) return protocol.error(res,err);
     connection.query(stmt, async (err, rows) => {
-      if(err) protocol.error(res,err)
+      if (err) return protocol.error(res,err);
       send_data.team = rows
       stmt = 'SELECT *, (SELECT name FROM user WHERE idx = tm.user_id) as name FROM team_member as tm WHERE team_id = ? AND kickout_date IS NULL AND walkout_date IS NULL;'
       // await rows.map((row, connection) => {
       //   connection.query(stmt, row.id, (err, rows2)) => {
-      //     if(err) protocol.error(res, err)
+      //     if (err) return protocol.error(res, err)
       //     member_list.push(rows2)
       //   }
       // })
       for(var i = 0; i < rows.length; i++) {
         params = [rows[i].id]
         connection.query(stmt,params, (err,rows2) => {
-          if(err) protocol.error(res,err)
+          if (err) return protocol.error(res,err);
           member_list.push(rows2);
         })
       }
@@ -278,8 +278,7 @@ exports.create = (req, res) => {
   pool.getConnection((err,connection) => {
 
     connection.query(stmt,(err,rows) => {
-      if(rows != null)
-        protocol.overlap(res)
+      if(rows != null) return protocol.overlap(res);
     })
 
 
@@ -288,13 +287,13 @@ exports.create = (req, res) => {
     params = [req.body.name,req.body.docs,req.body.area,req.body.subject,user_id,req.body.member_limit]
 
     connection.query(stmt,params,(err,rows) => {
-      if (err) protocol.error(res,err)
+      if (err) return protocol.error(res,err)
     });
     //추가한 Team_id를 찾음
 
     stmt = 'SELECT id FROM team WHERE leader_id = \''+user_id+'\' GROUP BY id ORDER BY id DESC'
     connection.query(stmt,(err,rows) => {
-      if(err) protocol.error(res,err)
+      if (err) return protocol.error(res,err)
 
       //찾은 Team_id로 리더를 Team_member테이블에 삽입
 
@@ -302,7 +301,7 @@ exports.create = (req, res) => {
       params = [rows[0].id,user_id,req.body.field,user_id,1]
 
       connection.query(stmt,params,(err,rows) => {
-        if(err) protocol.error(res,err)
+        if (err) return protocol.error(res,err)
         protocol.success(res)
         })
       });
@@ -320,7 +319,7 @@ exports.create = (req, res) => {
 
     pool.getConnection((err,connection) => {
       connection.query(stmt,(err,rows) => {
-        if(err) protocol.error(res,err)
+        if (err) return protocol.error(res,err)
         protocol.success(res)
       })
       connection.release();
@@ -341,7 +340,7 @@ exports.create = (req, res) => {
 
 
       connection.query(stmt,params,(err,rows) => {
-        if(err) protocol.err(res)
+        if (err) return protocol.err(res)
         protocol.success(res)
       });
       connection.release();
@@ -366,7 +365,7 @@ exports.create = (req, res) => {
 
         stmt = 'UPDATE team_member SET kickout_date = now() WHERE user = '+req.body.user_id
         connection.query(stmt,(err,rows) => {
-          if(err) protocol.error(res)
+          if (err) return protocol.error(res)
           protocol.success(res)
         })
       })
@@ -386,7 +385,8 @@ exports.create = (req, res) => {
     pool.getConnection((err,connection) => {
 
       connection.query(stmt,params,(err,rows) => {
-        if(err) protocol.error(res,err);
+        if (err) return protocol.error(res,err);
+        if (rows == 0) return protocol.notFound(res);
         protocol.success(res,rows)
       })
       connection.release();
