@@ -12,14 +12,15 @@ const token = req.headers['authorization']
 
   const verify = new Promise(
     (resolve,reject) => {
-      if(token) {
-        jwt.verify(token,req.app.get('jwt-secret'),(err, decoded) => {
-          if(err) reject(err)
-          console.log("decoded-------- : "+decode);
-            resolve(decode)
-        })
+      if(!token) {
+        return reject()
       }
-      reject()
+      jwt.verify(token,req.app.get('jwt-secret'),(err, decoded) => {
+        if(err) {
+          reject(err);
+        }
+        resolve(decoded)
+      })
     }
   )
 
@@ -27,14 +28,14 @@ const token = req.headers['authorization']
     next()
     // res.send({
     //   Code : 0,
-    //   Desc : err.message
+    //   Desc : error.message
     // })
   }
 
 //decoded에 idx에 user의 idx값 저장됨
 
   verify.then((decoded) => {
-    if(!decoded)
+    if(decoded)
       req.decoded = decoded
     next()
   }).catch(onError)

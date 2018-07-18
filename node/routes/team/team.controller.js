@@ -270,7 +270,15 @@ exports.super_team_list_user_id = (req,res) => {
 
 exports.create = (req, res) => {
 
-  var user_id = req.decoded.id;
+  const waitFor = (ms) => new Promise(r => setTimeout(r, ms))
+  let user_id = req.decoded.id;
+  // console.log("req.body ======================"+JSON.stringify(req.body));
+  // let temp = JSON.stringify(req.body)
+  // console.log("temp : ============"+temp);
+  // let temp2 = temp = temp.replace(/\\/g,"")
+  // console.log("temp2 : ============"+temp2);
+  // let req.body = JSON.parse(temp2)
+
   //todo DB구조 추가 했으니까 그거에 맞는 프로토콜, 코드 수정해야댐!
 
   stmt = 'SELECT * FROM team WHERE name LIKE '+req.body.name
@@ -281,31 +289,26 @@ exports.create = (req, res) => {
       if(rows != null) return protocol.overlap(res);
     })
 
-
     //Team테이블에 팀 생성
     stmt = 'INSERT INTO team (name,docs,area,subject,leader_id,member_limit) values (?,?,?,?,?,?)'
+    // params = [req.body.name,req.body.docs,req.body.area,req.body.subject,user_id,req.body.member_limit
     params = [req.body.name,req.body.docs,req.body.area,req.body.subject,user_id,req.body.member_limit]
 
     connection.query(stmt,params,(err,rows) => {
       if (err) return protocol.error(res,err)
-    });
-    //추가한 Team_id를 찾음
 
-    stmt = 'SELECT id FROM team WHERE leader_id = \''+user_id+'\' GROUP BY id ORDER BY id DESC'
-    connection.query(stmt,(err,rows) => {
-      if (err) return protocol.error(res,err)
+      //team_member 테이블에 리더 추가
 
-      //찾은 Team_id로 리더를 Team_member테이블에 삽입
+      let team_id = rows.insertId
 
       stmt = 'INSERT INTO team_member (team_id,user_id,field,inviter_id,is_leader) values (?,?,?,?,?)'
-      params = [rows[0].id,user_id,req.body.field,user_id,1]
+      params = [team_id,user_id,req.body.field,user_id,1]
 
       connection.query(stmt,params,(err,rows) => {
         if (err) return protocol.error(res,err)
-        protocol.success(res)
-        })
+        protocol.success(res,{"id" : team_id})
       });
-
+    });
       connection.release();
     });
   }
