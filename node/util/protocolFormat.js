@@ -61,6 +61,13 @@ team.overlap = (res) => {
   })
 }
 
+team.permission = (res) => {
+  return res.send({
+    "Code" : 204,
+    "Desc" : "Permisson error"
+  })
+}
+
 //User Protocol
 
 //user error

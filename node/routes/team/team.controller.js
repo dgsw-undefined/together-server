@@ -336,16 +336,31 @@ exports.create = (req, res) => {
   exports.join = (req,res) => {
     var user_id = parseInt(req.decoded.id)
 
-    stmt = "INSERT INTO team_member (team_id,user_id,inviter_id) values (?,?,?,?)"
-    params = [req.body.team_id,req.body.user_id,user_id]
 
-    pool,getConnection((err,connection) => {
+    pool.getConnection((err,connection) => {
+      //권한이 있는 유저인지 체크
+      stmt = 'SELECT * FROM team_member WHERE user_id = '+user_id
 
+      connection.query(stmt,(err,rows) => {
+        if(err) return protocol.error(res,err)
+        if(rows[0].is_leader === 0) return protocol.permission(res)
 
-      connection.query(stmt,params,(err,rows) => {
-        if (err) return protocol.err(res)
-        protocol.success(res)
-      });
+        // 이미 팀에 추가되어있는 유저인지 체크
+        stmt = 'SELECT * FROM team_member WHERE user_id = '+req.body.user_id+' AND team_id = '+req.body.team_id
+        connection.query(stmt,(err,rows) => {
+          if(rows.length !== 0)
+            return protocol.overlap(res)
+            //팀에 유저 추가
+
+            stmt = "INSERT INTO team_member (team_id,field,user_id,inviter_id) values (?,?,?,?)"
+            params = [req.body.team_id,req.body.field,req.body.user_id,user_id]
+
+            connection.query(stmt,params,(err,rows) => {
+              if (err) return protocol.error(res,err)
+              protocol.success(res)
+            });
+        })
+      })
       connection.release();
     });
   }
